@@ -64,7 +64,7 @@ The city is built from real folders: **building = a folder with a group of proje
 3. **Archive:** a project without activity for 30 days goes to the "archive" annex and returns on the first work (`archive: true`, length `archiveAfterDays` at the top level). For a building where the user does not want that (e.g. courses during a semester), `archive: false`.
 4. **Only projects with `CLAUDE.md`** (`onlyWithClaudeMd: true`): useful when the folder also holds things that are not projects.
 5. **A study building** (optional, offer it to students): floor = a course, the course notes are in one folder (`root`) and the assignment code in another (`code`, folders named `<CODE>` or `<CODE>-…`), `subjectCode: true`. Sessions from both count for the course.
-6. Single projects can be renamed, hidden, ordered or moved to another building in `floors` (see `world.example.json`). This can also be done later right in the app (Settings › Floors).
+6. Single projects can be renamed, hidden, ordered or moved to another building in `floors` (see `setup/world.example.json`). This can also be done later right in the app (Settings › Floors).
 
 If the user is unsure, start with one building over the folder with projects.
 
@@ -81,7 +81,7 @@ Ask: **"Do you keep notes? Where?"** and depending on the answer:
 | **Notion, Apple Notes, OneNote or another cloud app** | The city does not read them locally. Offer two options: no Brain (leave out `brain`, notes stay in project folders), or create a simple folder `~/Notes` as a new Brain. Notion can be connected to agents through the Notion MCP, that is outside the city setup. |
 | **I don't have any** | Suggest no Brain. Agents then propose notes and decisions into the project folder (`"notes": "folder"` on each building). If the user wants, create `~/Notes`. |
 
-Optional Brain keys: `private` (top-level folders shown without names in the app) and `omitOrphaned` (folders skipped when looking for notes without links), see `world.example.json`.
+Optional Brain keys: `private` (top-level folders shown without names in the app) and `omitOrphaned` (folders skipped when looking for notes without links), see `setup/world.example.json`.
 
 **Brain rules:** if the vault has a `CLAUDE.md`, agents follow it (where to write, what never to change). If it does not, offer a short `CLAUDE.md` for the vault with 3 rules: new notes go to the `Inbox/` folder, existing ones are only extended, nothing is deleted. Write it only with consent.
 
@@ -187,8 +187,8 @@ Register-ScheduledTask -TaskName "AgenticPlatform" -Action $a -Trigger $t -Descr
 ## 11. Summary, writing and starting
 
 1. Show a summary in a few lines (name, language, buildings with paths, Brain, scene, Control center, guards, extras) and ask "May I write it like this?".
-2. Write `world.json` following `world.example.json` (only the filled-in keys, without the `_note` comments).
-3. Check without a server: `node build-world.js` prints the buildings and floors. If a building is empty, fix its `root`.
+2. Write `world.json` following `setup/world.example.json` (only the filled-in keys, without the `_note` comments).
+3. Check without a server: `node server/build-world.js` prints the buildings and floors. If a building is empty, fix its `root`.
 4. `npm install` (if it has not run yet).
 5. Start: with the service from step 10, otherwise `npm start` in the background (so you can continue the conversation), or let the user start it in their own terminal. Another port: `PORT=5050 npm start`.
 6. Tell the user to open **http://localhost:4747**.
@@ -211,9 +211,9 @@ Finally tell the user that the setup can be changed any time with "change the ci
 |---|---|
 | `EADDRINUSE` on `npm start` | Port 4747 is used by another server (also the service). `PORT=5050 npm start`, or stop the other one. |
 | An agent reports 401 or "not logged in" | `claude auth login` in a terminal, then `claude auth status`. |
-| The city is empty | `world.json` is missing or the paths in `root` are wrong. `node build-world.js` prints buildings and warnings. A building without floors is not built. |
+| The city is empty | `world.json` is missing or the paths in `root` are wrong. `node server/build-world.js` prints buildings and warnings. A building without floors is not built. |
 | A project is missing from the tower | It is in the archive, hidden, or the building has more than `maxFloors` floors. For the floor set `"archive": false` in `floors`. |
-| `claude: command not found` in the service | The service does not have the terminal's PATH. Check PATH in `start.sh` (`~/.local/bin`, Homebrew, node from nvm). |
+| `claude: command not found` in the service | The service does not have the terminal's PATH. Check PATH in `scripts/start.sh` (`~/.local/bin`, Homebrew, node from nvm). |
 | `npm run check` reports that the server is not running | Start the server first. Another port: `npm run check -- http://localhost:5050`. |
 | A red mark in the app header | The server does not respond. See the log (macOS `~/Library/Logs/agentic-platform.log`, Linux `journalctl --user -u agentic-platform`, otherwise the terminal). |
 | Linux: the service cannot find `claude` | `Environment=PATH=` in the service file lacks the folder with `claude` (usually `~/.local/bin`). Fix it, `systemctl --user daemon-reload` and restart. |

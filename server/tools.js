@@ -11,7 +11,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // the same claude as the agents (CLAUDE_BIN from agents.js), otherwise the one bundled in the Agent SDK (undefined in agents.js = the SDK uses its own)
-const BUNDLED = path.join(path.dirname(fileURLToPath(import.meta.url)), 'node_modules', '@anthropic-ai', `claude-agent-sdk-${process.platform}-${process.arch}`, 'claude');
+const BUNDLED = path.join(path.dirname(path.dirname(fileURLToPath(import.meta.url))), 'node_modules', '@anthropic-ai', `claude-agent-sdk-${process.platform}-${process.arch}`, 'claude');
 
 export function normalizeMcp(name) {
   let s = String(name || '').trim();

@@ -52,12 +52,12 @@ export function limitFromEvent(info, emit) {
 export const stopLimits = closeLimits;
 
 // ---------- dictation (local Whisper) ----------
-const ROOT = path.dirname(new URL(import.meta.url).pathname);
+const ROOT = path.dirname(path.dirname(new URL(import.meta.url).pathname));
 let wp = null, wReady = null, wBuf = '', wId = 0, wIdle = null;
 const wPending = new Map();
 function startWhisper() {
   if (wp) return wReady;
-  wp = spawn('uv', ['run', '--quiet', path.join(ROOT, 'transcribe-server.py')], { cwd: ROOT, stdio: ['pipe', 'pipe', 'pipe'] });
+  wp = spawn('uv', ['run', '--quiet', path.join(ROOT, 'scripts', 'transcribe-server.py')], { cwd: ROOT, stdio: ['pipe', 'pipe', 'pipe'] });
   wReady = new Promise((resolve, reject) => {
     const tm = setTimeout(() => reject(new Error(t('server.extras.whisperNotLoaded'))), 180000);
     wp.stdout.on('data', (d) => {

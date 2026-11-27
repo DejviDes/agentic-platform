@@ -22,6 +22,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
+const ROOT_APP = path.dirname(HERE); // app root (data/, world.json); HERE = server/ (migrate-map.json)
 const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
 let MAP = null;
 const map = () => (MAP ||= JSON.parse(fs.readFileSync(path.join(HERE, 'migrate-map.json'), 'utf8')));
@@ -217,7 +218,7 @@ function backupName(root, now) {
 function same(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
 
 // Migration of one instance folder. Returns a report; throws on a mismatch or conflict (nothing replaced then).
-export function migrate({ root = HERE, dryRun = false, now = Date.now(), log = () => {} } = {}) {
+export function migrate({ root = ROOT_APP, dryRun = false, now = Date.now(), log = () => {} } = {}) {
   const report = { root, dryRun, world: null, data: null, backup: null };
   const worldFile = path.join(root, 'world.json'), svetFile = path.join(root, 'svet.json'), dataDir = path.join(root, 'data');
   // world.json
@@ -294,7 +295,7 @@ function countsMem(mem, nFiles) {
   };
 }
 // does this folder need a migration? (cheap: no file content is read)
-export function needsMigration(root = HERE) {
+export function needsMigration(root = ROOT_APP) {
   const world = !fs.existsSync(path.join(root, 'world.json')) && fs.existsSync(path.join(root, 'svet.json'));
   const st = dataStatus(path.join(root, 'data'));
   return { world, data: st.todo.length > 0, conflicts: st.conflicts.map((c) => c.old) };
@@ -303,7 +304,7 @@ export function needsMigration(root = HERE) {
 // ---------- CLI ----------
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const arg = (n) => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : null; };
-  const root = path.resolve(arg('--root') || HERE);
+  const root = path.resolve(arg('--root') || ROOT_APP);
   try {
     const r = migrate({ root, dryRun: process.argv.includes('--dry-run'), log: (m) => console.log(m) });
     console.log(JSON.stringify(r, null, 1));

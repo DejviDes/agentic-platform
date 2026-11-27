@@ -64,7 +64,7 @@ Mesto sa skladá zo skutočných priečinkov: **budova = priečinok so skupinou 
 3. **Archív:** projekt bez aktivity 30 dní ide do prístavby „archív“ a vráti sa pri prvej práci (`archive: true`, dĺžka `archiveAfterDays` na najvyššej úrovni). Pri budove, kde to nechce (napr. predmety v semestri), `archive: false`.
 4. **Iba projekty s `CLAUDE.md`** (`onlyWithClaudeMd: true`): vhodné, keď má v priečinku aj veci, ktoré nie sú projekty.
 5. **Budova na štúdium** (voliteľné, ponúkni študentom): poschodie = predmet, poznámky predmetu sú v jednom priečinku (`root`) a kód úloh v inom (`code`, priečinky `<KÓD>` alebo `<KÓD>-…`), `subjectCode: true`. Sessions z oboch sa rátajú k predmetu.
-6. Jednotlivé projekty sa dajú premenovať, skryť, zoradiť alebo presunúť do inej budovy vo `floors` (vzor vo `world.example.json`). To sa robí aj neskôr priamo v appke (Nastavenia › Poschodia).
+6. Jednotlivé projekty sa dajú premenovať, skryť, zoradiť alebo presunúť do inej budovy vo `floors` (vzor vo `setup/world.example.json`). To sa robí aj neskôr priamo v appke (Nastavenia › Poschodia).
 
 Ak nevie, začni s jednou budovou nad priečinkom s projektmi.
 
@@ -81,7 +81,7 @@ Opýtaj sa: **„Máš svoje poznámky? Kde?“** a podľa odpovede:
 | **Notion, Apple Poznámky, OneNote alebo iná appka v cloude** | Mesto ich lokálne nečíta. Ponúkni dve možnosti: bez Mozgu (`brain` vynechaj, poznámky ostanú v priečinkoch projektov), alebo založiť jednoduchý priečinok `~/Poznamky` ako nový Mozog. Notion sa dá agentom pripojiť cez Notion MCP, to je mimo nastavenia Mesta. |
 | **Nemám** | Navrhni bez Mozgu. Poznámky a rozhodnutia potom agenti navrhujú do priečinka projektu (`"notes": "folder"` pri každej budove). Ak chce, založ `~/Poznamky`. |
 
-Voliteľné kľúče Mozgu: `private` (priečinky na najvyššej úrovni, ktoré appka ukáže bez mien) a `omitOrphaned` (priečinky, ktoré sa vynechajú pri hľadaní poznámok bez odkazov), vzor vo `world.example.json`.
+Voliteľné kľúče Mozgu: `private` (priečinky na najvyššej úrovni, ktoré appka ukáže bez mien) a `omitOrphaned` (priečinky, ktoré sa vynechajú pri hľadaní poznámok bez odkazov), vzor vo `setup/world.example.json`.
 
 **Pravidlá Mozgu:** ak trezor má `CLAUDE.md`, agenti sa ním riadia (kam písať, čo nikdy nemeniť). Ak ho nemá, ponúkni krátky `CLAUDE.md` do trezoru s 3 pravidlami: nové poznámky do priečinka `Inbox/`, existujúce iba dopĺňať, nič nemazať. Zapíš ho iba so súhlasom.
 
@@ -187,8 +187,8 @@ Register-ScheduledTask -TaskName "AgenticPlatform" -Action $a -Trigger $t -Descr
 ## 11. Zhrnutie, zápis a spustenie
 
 1. Ukáž zhrnutie v pár riadkoch (meno, jazyk, budovy s cestami, Mozog, scéna, centrála, poistky, doplnky) a opýtaj sa „Môžem to tak zapísať?“.
-2. Zapíš `world.json` podľa `world.example.json` (iba vyplnené kľúče, bez komentárov `_note`).
-3. Over bez servera: `node build-world.js` vypíše budovy a poschodia. Ak je budova prázdna, oprav `root`.
+2. Zapíš `world.json` podľa `setup/world.example.json` (iba vyplnené kľúče, bez komentárov `_note`).
+3. Over bez servera: `node server/build-world.js` vypíše budovy a poschodia. Ak je budova prázdna, oprav `root`.
 4. `npm install` (ak ešte neprebehol).
 5. Spustenie: so službou podľa kroku 10, inak `npm start` na pozadí (aby si mohol pokračovať v rozhovore) alebo nech si ho človek spustí vo vlastnom termináli. Iný port: `PORT=5050 npm start`.
 6. Povedz mu, nech otvorí **http://localhost:4747**.
@@ -211,9 +211,9 @@ Na záver mu povedz, že nastavenie kedykoľvek zmení vetou „zmeň nastavenie
 |---|---|
 | `EADDRINUSE` pri `npm start` | Port 4747 už používa iný server (aj služba). `PORT=5050 npm start`, alebo zastav ten druhý. |
 | Agent hlási 401 alebo „not logged in“ | `claude auth login` v termináli, potom `claude auth status`. |
-| Mesto je prázdne | Chýba `world.json` alebo sú zlé cesty v `root`. `node build-world.js` vypíše budovy a varovania. Budova bez poschodí sa nepostaví. |
+| Mesto je prázdne | Chýba `world.json` alebo sú zlé cesty v `root`. `node server/build-world.js` vypíše budovy a varovania. Budova bez poschodí sa nepostaví. |
 | Projekt chýba vo veži | Je v archíve, je skrytý, alebo má budova viac ako `maxFloors` poschodí. Pri poschodí vo `floors` nastav `"archive": false`. |
-| `claude: command not found` v službe | Služba nemá PATH z terminálu. Skontroluj PATH v `start.sh` (`~/.local/bin`, Homebrew, node z nvm). |
+| `claude: command not found` v službe | Služba nemá PATH z terminálu. Skontroluj PATH v `scripts/start.sh` (`~/.local/bin`, Homebrew, node z nvm). |
 | `npm run check` hlási, že server nebeží | Najprv spusti server. Iný port: `npm run check -- http://localhost:5050`. |
 | Červená značka v hlavičke appky | Server neodpovedá. Pozri log (macOS `~/Library/Logs/agentic-platform.log`, Linux `journalctl --user -u agentic-platform`, inak terminál). |
 | Linux: služba nenájde `claude` | `Environment=PATH=` v súbore služby nemá priečinok s `claude` (zvyčajne `~/.local/bin`). Oprav, `systemctl --user daemon-reload` a reštart. |

@@ -11,35 +11,35 @@
 // Self-test:  node server.js --selftest (also the old --skuska) loads all modules, builds the world and exits (0 = ok, 1 = error),
 //             does not listen on a port and does not write to data/.
 
-import { migrate, needsMigration } from './migrate.js'; // first: also maps the original MESTO_* environment to AGENTIC_* before other modules read it
+import { migrate, needsMigration } from './server/migrate.js'; // first: also maps the original MESTO_* environment to AGENTIC_* before other modules read it
 import http from 'node:http';
 import { execFile } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { userLabel, loadSetting, buildWorld } from './build-world.js';
-import { loadModules } from './modules.js'; // optional modules Home, Mail, mobile (enabled in world.json)
-import { changeLanguage, changeFloor, list as listMessages } from './floor-admin.js';
-import { language, t } from './i18n.js';
-import { cleanEnv, openInApp, conversationDetail, image, attachment, saveAttachment, floorConversations, publicTeam, setAgents, sendMessage, editMessage, rules, rename, hide, toTrash, resolve as resolveConv, pin, decide, decideCard, cardType, taskCard, newSessionCard, floorState, restartState, saveAll, agentActivity, allSummaries, stop, sendImmediately, cancelFromQueue, floorCommands, cancelRule, namesState, setNames, CLAUDE_BIN, CLAUDE_VERSION } from './agents.js';
-import { LIMITS, limitFromEvent, loadLimits, transcription, prepareTranscription, stopLimits, stopTranscription } from './extras.js';
-import { commitControlCenter, diffControlCenter, setPushBan, pushControlCenter, watchApp, controlCenterState } from './control-center.js';
-import { watchStates, notifyMac } from './os-notifications.js';
-import { setSleep, recompute as recomputeSleep, sleepState, releaseSleep, changeSleep } from './sleep.js';
-import { mobileDone, setNotifications, notificationState, changeNotifications, show, withSound } from './notifications.js';
-import { calibrate, setUsage, setSaving, savingState } from './usage.js';
-import { usageBreakdown } from './usage-sessions.js';
-import { brainData, setBrain } from './brain-activity.js'; // agent activity in the brain and orphaned notes (Brain)
-import { proposeFloor } from './router.js';
-import { setScribe, scribeState, changeScribe } from './scribe.js'; // Scribe after a turn (2026-11-25)
-import { pendingQuestions, setChronicler, replyToQuestion, addQuestion, toggle as toggleChronicler, start as startChronicler, chroniclerState } from './chronicler-night.js'; // nightly Chronicler and questions in the Brain
-import { startTools, toolState } from './tools.js';
-import { virtualFloor } from './virtual-floors.js';
-import { dispatcherContext, setDispatch, verifyTasks, prepareTask, splitTasks, decideTask, startTask, dispatchState, cancelTask } from './dispatch.js';
-import { IS_MAC } from './platform.js';
-import { LOCK_DISABLED, activity, initLock, unlock, verifyKey, lastCardActivity, watchStream, lock } from './lock.js';
-import { exist as existFiles, rawHeaders, filePreview, setFiles, open as openFile, rawFile } from './files.js'; // file preview from the chat
+import { userLabel, loadSetting, buildWorld } from './server/build-world.js';
+import { loadModules } from './server/modules.js'; // optional modules Home, Mail, mobile (enabled in world.json)
+import { changeLanguage, changeFloor, list as listMessages } from './server/floor-admin.js';
+import { language, t } from './server/i18n.js';
+import { cleanEnv, openInApp, conversationDetail, image, attachment, saveAttachment, floorConversations, publicTeam, setAgents, sendMessage, editMessage, rules, rename, hide, toTrash, resolve as resolveConv, pin, decide, decideCard, cardType, taskCard, newSessionCard, floorState, restartState, saveAll, agentActivity, allSummaries, stop, sendImmediately, cancelFromQueue, floorCommands, cancelRule, namesState, setNames, CLAUDE_BIN, CLAUDE_VERSION } from './server/agents.js';
+import { LIMITS, limitFromEvent, loadLimits, transcription, prepareTranscription, stopLimits, stopTranscription } from './server/extras.js';
+import { commitControlCenter, diffControlCenter, setPushBan, pushControlCenter, watchApp, controlCenterState } from './server/control-center.js';
+import { watchStates, notifyMac } from './server/os-notifications.js';
+import { setSleep, recompute as recomputeSleep, sleepState, releaseSleep, changeSleep } from './server/sleep.js';
+import { mobileDone, setNotifications, notificationState, changeNotifications, show, withSound } from './server/notifications.js';
+import { calibrate, setUsage, setSaving, savingState } from './server/usage.js';
+import { usageBreakdown } from './server/usage-sessions.js';
+import { brainData, setBrain } from './server/brain-activity.js'; // agent activity in the brain and orphaned notes (Brain)
+import { proposeFloor } from './server/router.js';
+import { setScribe, scribeState, changeScribe } from './server/scribe.js'; // Scribe after a turn (2026-11-25)
+import { pendingQuestions, setChronicler, replyToQuestion, addQuestion, toggle as toggleChronicler, start as startChronicler, chroniclerState } from './server/chronicler-night.js'; // nightly Chronicler and questions in the Brain
+import { startTools, toolState } from './server/tools.js';
+import { virtualFloor } from './server/virtual-floors.js';
+import { dispatcherContext, setDispatch, verifyTasks, prepareTask, splitTasks, decideTask, startTask, dispatchState, cancelTask } from './server/dispatch.js';
+import { IS_MAC } from './server/platform.js';
+import { LOCK_DISABLED, activity, initLock, unlock, verifyKey, lastCardActivity, watchStream, lock } from './server/lock.js';
+import { exist as existFiles, rawHeaders, filePreview, setFiles, open as openFile, rawFile } from './server/files.js'; // file preview from the chat
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 // canUseTool is deliberately not called for tools from allowedTools (Read, Grep…), the SDK warning on every turn is not needed
@@ -497,8 +497,8 @@ const handler = async (req, res) => { // also for the mobile gateway (gateway.js
     if (await MOD.handle({ req, res, url, post, path: route, q, body, bodyBin, json: (r, code, obj) => { json(r, code, obj); return true; } })) return;
     if (['/api/today', '/api/home', '/api/tower'].includes(route) && !MOD.loaded.home) return json(res, 404, { error: t('server.http.moduleHome') }); // the app takes 404 as "without Home"
     if (post && route === '/api/speak') { // Autopilot on mobile: text → MP3 (Azure, speak.js)
-      if (!fs.existsSync(path.join(ROOT, 'speak.js'))) return json(res, 404, { error: t('server.http.voice') }); // optional, in the package it belongs to the mobile module
-      try { const { speak } = await import('./speak.js'); const { b, type, voice } = await speak((await body(req)).text); res.writeHead(200, { 'Content-Type': type, 'Content-Length': b.length, 'Cache-Control': 'no-store', 'X-Hlas': voice }); return res.end(b); }
+      if (!fs.existsSync(path.join(ROOT, 'server', 'speak.js'))) return json(res, 404, { error: t('server.http.voice') }); // optional, in the package it belongs to the mobile module
+      try { const { speak } = await import('./server/speak.js'); const { b, type, voice } = await speak((await body(req)).text); res.writeHead(200, { 'Content-Type': type, 'Content-Length': b.length, 'Cache-Control': 'no-store', 'X-Hlas': voice }); return res.end(b); }
       catch (e) { return json(res, e.code || 500, { error: e.message }); }
     }
     if (post && route === '/api/transcript/prepare') { prepareTranscription().catch(() => {}); return json(res, 200, { ok: true }); }

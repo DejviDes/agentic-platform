@@ -27,7 +27,7 @@ const PATH_SLOT = [[5.5, 14], [11.5, 5], [21, 6.5], [20.5, 14], [20.5, 22]], HOM
 const POSITION = {
   0: { type: 'box', x: 3.7, z: 12, w: 3.6, d: 4 }, 1: { type: 'box', x: 9.5, z: 3.2, w: 4, d: 3.6 }, 2: { type: 'box', x: 19.3, z: 4.8, w: 3.4, d: 3.4 },
   3: { type: 'box', x: 18.7, z: 12, w: 3.6, d: 4 }, 4: { type: 'box', x: 18.7, z: 19.5, w: 3.6, d: 4 }, // 4th and 5th building (right edge)
-  brain: { type: 'disc', x: 13, z: 12.5, r: 2.4 }, controlCenter: { type: 'hex', x: 5.5, z: 8, r: 2.15 },
+  brain: { type: 'disc', x: 13, z: 12.5, r: 2.4 }, 'control-center': { type: 'hex', x: 5.5, z: 8, r: 2.15 }, // key = b.key from source.js
 };
 // Home buildings: [x, z, width, depth, number of boards] (shift +3.6 / +1.5 as in the prototype)
 const HOME_POSITION = {

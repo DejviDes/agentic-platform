@@ -13,8 +13,11 @@ export const STARTED = Date.now();
 let hostsBan = () => [];
 export const setPushBan = (f) => { hostsBan = f; };
 // files whose change takes effect only after a server restart
-const SERVER_FILES = ['server.js', 'agents.js', 'extras.js', 'build-world.js', 'modules.js', 'overview.js', 'control-center.js', 'os-notifications.js', 'start.sh', 'package.json', 'transcribe-server.py'];
-const kind = (s) => (s.startsWith('public/app/') || s === 'public/index.html' ? 'app' : SERVER_FILES.includes(s) ? 'server' : s.startsWith('public/') ? 'design' : 'other');
+// files whose change needs a server restart (paths relative to the app root; every module in server/ counts)
+const SERVER_FILES = ['server.js', 'package.json', 'scripts/start.sh', 'scripts/transcribe-server.py'];
+const isServerFile = (s) => SERVER_FILES.includes(s) || /^server\/[\w.-]+\.(js|json)$/.test(s);
+const serverFiles = (root) => { try { return SERVER_FILES.concat(fs.readdirSync(path.join(root, 'server')).filter((f) => /\.(js|json)$/.test(f)).map((f) => 'server/' + f)); } catch { return SERVER_FILES; } };
+const kind = (s) => (s.startsWith('public/app/') || s === 'public/index.html' ? 'app' : isServerFile(s) ? 'server' : s.startsWith('public/') ? 'design' : 'other');
 const error = (message, code = 400) => Object.assign(new Error(message), { code });
 
 function git(cwd, args, { timeout = 10000, max = 8e6 } = {}) {
@@ -46,7 +49,7 @@ export async function controlCenterState(root) {
     git(root, ['rev-parse', '--abbrev-ref', 'HEAD']).catch(() => '?'),
     git(root, ['rev-list', '--count', '@{u}..HEAD']).catch(() => null),
   ]);
-  const serverChanged = SERVER_FILES.filter((f) => { try { return fs.statSync(path.join(root, f)).mtimeMs > STARTED; } catch { return false; } });
+  const serverChanged = serverFiles(root).filter((f) => { try { return fs.statSync(path.join(root, f)).mtimeMs > STARTED; } catch { return false; } });
   return {
     started: STARTED, branch: branch.trim(), ahead: ahead == null ? null : +ahead, changes: z, serverChanged,
     log: log.trim().split('\n').filter(Boolean).map((r) => { const [h, t, ...s] = r.split('\t'); return { h, time: +t * 1000, s: s.join('\t') }; }),
@@ -106,7 +109,8 @@ export const commitNow = (root) => git(root, ['log', '-1', '--format=%h %s']).th
 // Server code → SSE `controlCenter` (the bar shows that an old version is running). A save without a content change is ignored (hash).
 export function watchApp(root, emit) {
   const hash = new Map(), h = (f) => { try { return crypto.createHash('sha1').update(fs.readFileSync(f)).digest('hex'); } catch { return null; } };
-  const pile = { app: new Set(), controlCenter: new Set() }, t = {};
+  // keys = SSE kinds (api.js listens for 'control-center'); a wrong key crashed the server on every server file change
+  const pile = { app: new Set(), 'control-center': new Set() }, t = {};
   const change = (type, abs, name) => {
     const fresh = h(abs); if (hash.get(abs) === fresh) return; hash.set(abs, fresh);
     pile[type].add(name); clearTimeout(t[type]);
@@ -120,4 +124,5 @@ export function watchApp(root, emit) {
   watch(path.join(root, 'public', 'app'), 'app', (f) => /^[\w.-]+\.(js|css)$/.test(f));
   watch(path.join(root, 'public'), 'app', (f) => f === 'index.html');
   watch(root, 'control-center', (f) => SERVER_FILES.includes(f));
+  watch(path.join(root, 'server'), 'control-center', (f) => isServerFile('server/' + f));
 }

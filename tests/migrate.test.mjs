@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { migrate, needsMigration, migrateWorld, legacyWorld, legacyEnv, tFloor, tMcp, tPieces, tValue } from '../migrate.js';
+import { migrate, needsMigration, migrateWorld, legacyWorld, legacyEnv, tFloor, tMcp, tPieces, tValue } from '../server/migrate.js';
 
 const NOW = new Date('2026-11-27T12:00:00').getTime();
 const DAY = '2026-11-27';

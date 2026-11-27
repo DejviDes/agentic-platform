@@ -22,7 +22,7 @@ const DAY = 24 * 3600 * 1000;
 const expand = (p) => (p && p.startsWith('~') ? path.join(HOME, p.slice(1)) : p);
 const shortenPath = (p) => (p.startsWith(HOME + '/') ? '~' + p.slice(HOME.length) : p);
 const nfc = (s) => s.normalize('NFC');
-const ROOT_APP = nfc(path.dirname(fileURLToPath(import.meta.url)));
+const ROOT_APP = nfc(path.dirname(path.dirname(fileURLToPath(import.meta.url))));
 const COLORS = ['#4f7cff', '#8a6cff', '#14a3b8', '#3fb68b', '#e0607e', '#f2a65a'];
 // folder with a subject code: <root>/<CODE> or <root>/<CODE>-… (e.g. <root>/ABC123-Name)
 function findCode(root, code) {
@@ -376,7 +376,7 @@ export const bannedPush = (fileSettings) => loadSetting(fileSettings).guards.ban
 // Standalone run: node build-world.js → prints an overview (to check world.json)
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname)) {
   const t0 = performance.now();
-  const s = buildWorld({ fileSettings: path.join(path.dirname(new URL(import.meta.url).pathname), 'world.json') });
+  const s = buildWorld({ fileSettings: path.join(path.dirname(path.dirname(new URL(import.meta.url).pathname)), 'world.json') });
   const when = (ms) => (ms ? `${Math.round((Date.now() - ms) / DAY)} d` : '—');
   for (const b of s.buildings) {
     console.log(`\n${b.title} (${b.floors.length} floors, archive ${b.archive.length})`);

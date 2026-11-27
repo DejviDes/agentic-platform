@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!-- macOS service template for the Agentic Platform server (macOS only, optional). Do not fill in by hand: launchd/install.sh
      replaces __APP_DIR__ (the app folder) and __HOME__ (your home folder) and saves the result to ~/Library/LaunchAgents/.
-     The service starts after login; after a crash or exit launchd starts it again (KeepAlive). start.sh sets PATH and runs
+     The service starts after login; after a crash or exit launchd starts it again (KeepAlive). scripts/start.sh sets PATH and runs
      node server.js. The server recognizes the service by its label (XPC_SERVICE_NAME ends in agentic-platform); only then may
      the tool restart_server end the server (launchd starts it again). AGENTIC_SERVICE=1 marks the service for scripts.
      Restart:   launchctl kickstart -k gui/$(id -u)/local.agentic-platform
@@ -16,7 +16,7 @@
   <key>ProgramArguments</key>
   <array>
     <string>/bin/bash</string>
-    <string>__APP_DIR__/start.sh</string>
+    <string>__APP_DIR__/scripts/start.sh</string>
   </array>
   <key>WorkingDirectory</key>
   <string>__APP_DIR__</string>

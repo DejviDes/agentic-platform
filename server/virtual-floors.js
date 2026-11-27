@@ -20,7 +20,7 @@ import { loadSetting } from './build-world.js';
 import { chroniclerPaths, canWrite as canWriteChronicler } from './chronicler-night.js';
 
 const HOME = os.homedir();
-const CITY = path.dirname(fileURLToPath(import.meta.url));
+const CITY = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const esc = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 // Brain from world.json (`brain.path`, `brain.forbiddenWrites` = regexes of relative paths): the Chronicler works in it and does not read the forbidden parts
 function brainWorld() {

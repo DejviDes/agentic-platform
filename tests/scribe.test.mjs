@@ -3,9 +3,9 @@ process.env.AGENTIC_LANG = 'sk'; // the test checks the Slovak texts
 // Haiku reply parsing, processTurn with a fake Haiku, material text and questions. No Claude, no data/ (state only in memory).
 import assert from 'node:assert/strict';
 import path from 'node:path';
-import { guardBash } from '../agents.js';
-import { commitFromStep, isDecision, candidates, judge, parseReply, processTurn, inTarget, extractTurn } from '../scribe.js';
-import { replyText, materialText, collectMaterials } from '../chronicler-night.js';
+import { guardBash } from '../server/agents.js';
+import { commitFromStep, isDecision, candidates, judge, parseReply, processTurn, inTarget, extractTurn } from '../server/scribe.js';
+import { replyText, materialText, collectMaterials } from '../server/chronicler-night.js';
 
 const D = '/tmp/brain/Projekty/p', c = { kind: 'dir', folder: D, file: D + '/README.md' };
 const t = (o) => ({ user: [], assistant: '', writes: [], read: [], commits: [], memory: false, ...o });

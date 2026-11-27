@@ -17,7 +17,7 @@ const SNIFF = 8192;
 const MAX_PATHS = 50;
 
 const real = (p) => { try { return fs.realpathSync(p); } catch { return path.resolve(p); } };
-const CITY = path.dirname(fileURLToPath(import.meta.url));
+const CITY = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const APP_DATA = path.join(CITY, 'data'); // the server's conversations, permissions and attachments are never shown
 
 // Configuration comes from the server (setFiles): { roots: [absolute paths], brain: absolute path of the Obsidian vault | null, sensitive: [regex as text] }.

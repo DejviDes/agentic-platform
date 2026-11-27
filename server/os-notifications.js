@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { IS_MAC } from './platform.js';
 import { t } from './i18n.js';
 
-const DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), 'notifier');
+const DIR = path.join(path.dirname(path.dirname(fileURLToPath(import.meta.url))), 'notifier');
 const APP_BIN = path.join(DIR, 'Mesto agentov.app', 'Contents', 'MacOS', 'mesto-oznam');
 const SOURCES = ['notifier.swift', 'icon.swift', 'build.sh'].map((f) => path.join(DIR, f));
 const mtime = (f) => { try { return fs.statSync(f).mtimeMs; } catch { return 0; } };

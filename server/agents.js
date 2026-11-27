@@ -48,7 +48,7 @@ const newer = (a, b) => { const x = a.split('.').map(Number), y = b.split('.').m
 export let CLAUDE_BIN, CLAUDE_VERSION = '';
 try {
   const my = execFileSync(process.platform === 'win32' ? 'where' : 'which', ['claude'], { encoding: 'utf8' }).trim().split(/\r?\n/)[0]; // where (Windows) prints several lines
-  const bundled = path.join(path.dirname(fileURLToPath(import.meta.url)), 'node_modules', '@anthropic-ai', `claude-agent-sdk-${process.platform}-${process.arch}`, process.platform === 'win32' ? 'claude.exe' : 'claude');
+  const bundled = path.join(path.dirname(path.dirname(fileURLToPath(import.meta.url))), 'node_modules', '@anthropic-ai', `claude-agent-sdk-${process.platform}-${process.arch}`, process.platform === 'win32' ? 'claude.exe' : 'claude');
   const vm = my ? version(my) : '', vp = fs.existsSync(bundled) ? version(bundled) : '';
   CLAUDE_BIN = vm && (!vp || !newer(vp, vm)) ? my : undefined; CLAUDE_VERSION = CLAUDE_BIN ? vm : vp;
 } catch { CLAUDE_BIN = undefined; }
@@ -142,7 +142,7 @@ const BAN_PROTECTED = () => tl('prompt.ban.protected');
 // A Write/Edit is judged by its target path (does not slow down other projects, concerns only City files).
 // Bash: data/, node_modules/, prototypes, kill/launchctl/node server.js only when the command runs in the City folder or
 // mentions it; the City server (port 4747, launchd service, server PID) and the approval API (commit, push, cards) everywhere.
-const CITY = path.dirname(fileURLToPath(import.meta.url)).normalize('NFC');
+const CITY = path.dirname(path.dirname(fileURLToPath(import.meta.url))).normalize('NFC');
 // launchd service: the user's instance label ends in mesto-agentov, the product's in agentic-platform
 const SERVICE_NAME = /mesto-agentov|agentic-platform/;
 const PLIST_RE = new RegExp('^' + path.join(HOME, 'Library', 'LaunchAgents').replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '/(?:[\\w-]+\\.)*(?:mesto-agentov|agentic-platform)\\.plist$');

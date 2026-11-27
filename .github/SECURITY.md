@@ -18,4 +18,4 @@ Agentic Platform runs AI agents (Claude Code) that can read and change files on 
 
 ## Your responsibility
 
-Review what agents propose before you approve it, keep `world.json` (or the original `svet.json`) and the `data/` folder private, and keep Node.js and Claude Code up to date. The software is provided without warranty; see [LICENSE](LICENSE).
+Review what agents propose before you approve it, keep `world.json` (or the original `svet.json`) and the `data/` folder private, and keep Node.js and Claude Code up to date. The software is provided without warranty; see [LICENSE](../LICENSE).

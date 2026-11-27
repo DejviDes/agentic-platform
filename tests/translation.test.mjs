@@ -7,9 +7,9 @@ import { fileURLToPath } from 'node:url';
 
 delete process.env.AGENTIC_LANG;
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const { default: en } = await import(new URL('../i18n/en.js', import.meta.url));
-const { default: sk } = await import(new URL('../i18n/sk.js', import.meta.url));
-const { t, language, setLanguage } = await import(new URL('../i18n.js', import.meta.url));
+const { default: en } = await import(new URL('../server/i18n/en.js', import.meta.url));
+const { default: sk } = await import(new URL('../server/i18n/sk.js', import.meta.url));
+const { t, language, setLanguage } = await import(new URL('../server/i18n.js', import.meta.url));
 
 const keysEn = Object.keys(en).sort(), keysSk = Object.keys(sk).sort();
 assert.deepEqual(keysEn, keysSk, 'en and sk have the same keys');
@@ -44,7 +44,7 @@ const skKey = 'server.test.only.en'; en[skKey] = 'only en';
 setLanguage('sk'); assert.equal(t(skKey), 'only en'); setLanguage('en'); delete en[skKey];
 
 // static check of calls: t('key', { a, b: expr }) supplies exactly the placeholders of the text, every used key exists
-const FILES = ['server.js', 'agents.js', 'build-world.js', 'floor-admin.js', 'virtual-floors.js', 'control-center.js', 'router.js', 'dispatch.js', 'modules.js', 'scribe.js', 'chronicler-night.js', 'scheduler.js', 'agent-runs.js', 'extras.js', 'os-notifications.js', 'notifications.js', 'sleep.js', 'usage.js', 'usage-sessions.js', 'files.js', 'lock.js'];
+const FILES = ['server.js', ...['agents.js', 'build-world.js', 'floor-admin.js', 'virtual-floors.js', 'control-center.js', 'router.js', 'dispatch.js', 'modules.js', 'scribe.js', 'chronicler-night.js', 'scheduler.js', 'agent-runs.js', 'extras.js', 'os-notifications.js', 'notifications.js', 'sleep.js', 'usage.js', 'usage-sessions.js', 'files.js', 'lock.js'].map((f) => 'server/' + f)];
 function balanced(s, i) { // from '{' returns the index after the matching '}'
   let d = 0;
   for (let j = i; j < s.length; j++) {

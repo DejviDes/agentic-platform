@@ -1,6 +1,6 @@
 # Agentic Platform
 
-**English** · [Slovenčina](README.sk.md)
+**English** · [Slovenčina](docs/README.sk.md)
 
 **A local control center for teams of Claude Code agents.** You see your projects as a 3D city where agents work. A building is a group of projects, a floor is one project (a folder on your disk), and on every floor there is a lead agent with a team. You write to them, approve their steps with a click, and from the city you see where work is going on and where an agent is waiting for you.
 
@@ -66,7 +66,7 @@ Then type: **"set up my city"**. The AI walks you through a short conversation (
 
 ```bash
 npm install
-cp world.example.json world.json   # edit the paths to your projects
+cp setup/world.example.json world.json   # edit the paths to your projects
 npm start                          # http://localhost:4747
 ```
 
@@ -83,7 +83,7 @@ Your setup (`world.json`, `data/`, the teams in your own folders) stays untouche
 
 ## Privacy
 
-Everything runs on your computer only (`127.0.0.1`). Your paths are in `world.json`, conversations and permissions in `data/`; both are in `.gitignore`. The app sends nothing anywhere beyond what Claude Code itself sends. Security model: [SECURITY.md](SECURITY.md).
+Everything runs on your computer only (`127.0.0.1`). Your paths are in `world.json`, conversations and permissions in `data/`; both are in `.gitignore`. The app sends nothing anywhere beyond what Claude Code itself sends. Security model: [SECURITY.md](.github/SECURITY.md).
 
 ## Documentation
 
@@ -92,7 +92,7 @@ Everything runs on your computer only (`127.0.0.1`). Your paths are in `world.js
 | [docs/SETUP.md](docs/SETUP.md) | setup step by step (instructions for the AI and for you) |
 | [docs/USAGE.md](docs/USAGE.md) | how to use the city |
 | [docs/FEATURES.md](docs/FEATURES.md) | all features and modules |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | bug reports, ideas, pull requests |
+| [CONTRIBUTING.md](.github/CONTRIBUTING.md) | bug reports, ideas, pull requests |
 | [docs/sk/](docs/sk/SETUP.md) | Slovak documentation |
 
 ## License

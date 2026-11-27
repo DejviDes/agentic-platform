@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ruleKey, guardBash, guardReading, guardWrite } from '../agents.js';
+import { ruleKey, guardBash, guardReading, guardWrite } from '../server/agents.js';
 
 const CITY = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const HOME = os.homedir();

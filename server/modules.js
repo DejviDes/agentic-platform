@@ -17,7 +17,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { t } from './i18n.js';
 
-const ROOT = path.dirname(fileURLToPath(import.meta.url));
+const HERE = path.dirname(fileURLToPath(import.meta.url)); // server/, where the module files live
 export const MODULES = { home: 'module-home.js', mail: 'module-mail.js', mobile: 'module-mobile.js' };
 
 // enabled: { home: bool, mail: bool, mobile: bool } (from build-world.js `modules`)
@@ -26,7 +26,7 @@ export async function loadModules(enabled = {}) {
   for (const [key, file] of Object.entries(MODULES)) {
     loaded[key] = false;
     if (enabled[key] !== true) continue;
-    if (!fs.existsSync(path.join(ROOT, file))) { console.log(t('server.modules.errorFile', { key, file })); continue; }
+    if (!fs.existsSync(path.join(HERE, file))) { console.log(t('server.modules.errorFile', { key, file })); continue; }
     try { loadedModules[key] = await import('./' + file); loaded[key] = true; }
     catch (e) { console.warn(t('server.modules.notLoaded', { key, error: e.message })); }
   }

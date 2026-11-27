@@ -16,7 +16,7 @@ TARGET="$TARGET_DIR/local.agentic-platform.plist"
 
 [ -f "$TEMPLATE" ] || { echo "Template missing: $TEMPLATE" >&2; exit 1; }
 [ -f "$APP_DIR/server.js" ] || { echo "No server.js in $APP_DIR" >&2; exit 1; }
-[ -f "$APP_DIR/start.sh" ] || { echo "No start.sh in $APP_DIR" >&2; exit 1; }
+[ -f "$APP_DIR/scripts/start.sh" ] || { echo "No scripts/start.sh in $APP_DIR" >&2; exit 1; }
 
 # & < > must be escaped in XML
 xml() { local s=$1; s=${s//&/&amp;}; s=${s//</&lt;}; s=${s//>/&gt;}; printf '%s' "$s"; }

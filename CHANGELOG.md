@@ -2,6 +2,14 @@
 
 Every release has its own version (a `vX.Y.Z` tag in the repository). Update with `npm run update`, which downloads only the changes and shows you what is new. Y goes up with new features, Z with fixes.
 
+## 0.2.2 (2026-11-27)
+
+Tidier repository: server modules moved to server/, the README shows up right away.
+
+- **A short top-level folder:** on GitHub the README now appears right below a few files. The server modules live in `server/`, the start script in `scripts/`, the sample settings in `setup/world.example.json`, the Slovak README in `docs/`, and the contribution and security guides in `.github/`.
+- **Nothing changes for your city:** `npm start`, `node server.js` and your `world.json` and `data/` stay where they were.
+- **The launchd service is updated for you:** on macOS `npm run update` points the service to the new `scripts/start.sh` and reloads it (a backup of the service file is kept next to it).
+
 ## 0.2.1 (2026-11-27)
 
 Better screenshots and a Workroom demo in the README.

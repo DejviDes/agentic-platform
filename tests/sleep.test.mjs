@@ -2,7 +2,7 @@
 process.env.AGENTIC_LANG = 'sk'; // the test checks the Slovak reason texts
 import assert from 'node:assert/strict';
 import fs from 'node:fs'; import os from 'node:os'; import path from 'node:path';
-const m = await import(new URL('../sleep.js', import.meta.url));
+const m = await import(new URL('../server/sleep.js', import.meta.url));
 let t = 1e9, log = [], sudoOk = true, batt = "Now drawing from 'AC Power'\n -InternalBattery-0 (id=1)\t80%; charging", lid = 'No', update = { running: 0, pending: [] }, alert = [], pressureMac = 0;
 const execute = (p, a) => { log.push(p.split('/').pop() + ' ' + a.join(' '));
   if (p.endsWith('sudo')) { if (!sudoOk) throw new Error('sudo: a password is required'); return ''; }

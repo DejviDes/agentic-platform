@@ -43,7 +43,7 @@ function staticParts() {
   const appFiles = readdirSync(dir).filter((f) => f.endsWith('.js'));
   for (const f of appFiles) { const c = check(path.join(dir, f)); if (c) wrong.push(`public/app/${f}: ${c}`); }
   write(`Syntax public/app (${appFiles.length} modules)`, !wrong.length, wrong.join('; '));
-  const srv = readdirSync(ROOT).filter((f) => f.endsWith('.js'));
+  const srv = readdirSync(ROOT).filter((f) => f.endsWith('.js')).concat(readdirSync(path.join(ROOT, 'server')).filter((f) => f.endsWith('.js')).map((f) => 'server/' + f)); // server.js + server/
   const wrongWith = [];
   for (const f of srv) { const c = check(path.join(ROOT, f)); if (c) wrongWith.push(`${f}: ${c}`); }
   write(`Server syntax (${srv.length} files)`, !wrongWith.length, wrongWith.join('; '));

@@ -9,15 +9,15 @@ if (process.env.AGENTIC_PLATFORM !== 'linux') { // the test reruns itself in a s
   console.log('platform.test: OK');
   process.exit(0);
 }
-const k = await import(new URL('../platform.js', import.meta.url));
+const k = await import(new URL('../server/platform.js', import.meta.url));
 assert.equal(k.IS_MAC, false); assert.equal(k.PLATFORM, 'linux');
 
-const lock = await import(new URL('../lock.js', import.meta.url));
+const lock = await import(new URL('../server/lock.js', import.meta.url));
 assert.equal(lock.LOCK_DISABLED, true);
 assert.equal(lock.verifyKey({ headers: {}, method: 'POST' }, new URL('http://x/api/world')), true); // allowed without a key
 const o = await lock.unlock(); assert.equal(o.ok, true); assert.equal(o.disabled, true); // neither swiftc nor Touch ID ran
 
-const sp = await import(new URL('../sleep.js', import.meta.url));
+const sp = await import(new URL('../server/sleep.js', import.meta.url));
 let calls = 0;
 sp.setSleep({ execute: () => { calls++; return ''; }, activity: () => ({ running: 3, pending: [] }) });
 sp.recompute(true);
@@ -25,7 +25,7 @@ assert.deepEqual(sp.sleepState(), { mode: 'common', holds: false, available: fal
 assert.throws(() => sp.changeSleep({ mode: 'never' }), /macOS/);
 sp.releaseSleep(); assert.equal(calls, 0);
 
-const oz = await import(new URL('../os-notifications.js', import.meta.url));
+const oz = await import(new URL('../server/os-notifications.js', import.meta.url));
 assert.equal(oz.terminalNotifier(), null);
 assert.equal(oz.notifyMac({ title: 'x' }), undefined); // nothing is started (otherwise execFile would return a process)
 console.log('OK');

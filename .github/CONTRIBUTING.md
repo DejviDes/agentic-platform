@@ -1,6 +1,6 @@
 # Contributing to Agentic Platform
 
-Thanks for your interest. Agentic Platform is a personal project shared as **source-available** software (see [LICENSE](LICENSE)). Contributions are welcome, within a few ground rules.
+Thanks for your interest. Agentic Platform is a personal project shared as **source-available** software (see [LICENSE](../LICENSE)). Contributions are welcome, within a few ground rules.
 
 ## How development works
 
@@ -23,7 +23,7 @@ Thanks for your interest. Agentic Platform is a personal project shared as **sou
 
 ## License of contributions
 
-By submitting a contribution (pull request, patch or code in an issue), you agree that it is provided under the terms in section 3 of the [LICENSE](LICENSE): the copyright holder may use, modify, distribute and relicense it as part of the software. Only contribute code you wrote yourself or have the right to share.
+By submitting a contribution (pull request, patch or code in an issue), you agree that it is provided under the terms in section 3 of the [LICENSE](../LICENSE): the copyright holder may use, modify, distribute and relicense it as part of the software. Only contribute code you wrote yourself or have the right to share.
 
 ## Security
 

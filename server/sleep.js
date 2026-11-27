@@ -131,7 +131,7 @@ export function sleepState() {
   if (!IS_MAC) return { mode: 'common', holds: false, available: false, reason: 'Iba na macOS.' };
   const b = detectBattery(), ok = detectSudo(false);
   const reason = wants && !S.held && ok === false ? t('server.sleep.errorSudo') : fromReason;
-  return { mode: S.mode, holds: S.held, reason, sudoOk: ok, sudoCommand: 'sudo bash ' + path.join(path.dirname(new URL(import.meta.url).pathname), 'scripts', 'sleep-sudo.sh').replace(process.env.HOME || '\0', '~'), battery: b, lid: S.mode === 'common' ? null : detectLid() };
+  return { mode: S.mode, holds: S.held, reason, sudoOk: ok, sudoCommand: 'sudo bash ' + path.join(path.dirname(path.dirname(new URL(import.meta.url).pathname)), 'scripts', 'sleep-sudo.sh').replace(process.env.HOME || '\0', '~'), battery: b, lid: S.mode === 'common' ? null : detectLid() };
 }
 
 // on server shutdown: sleep is restored (synchronously). On failure held stays true, the start reconciles it.
