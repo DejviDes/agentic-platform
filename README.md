@@ -6,13 +6,13 @@
 
 > Status: **alpha**. Runs locally on your computer, on your own Claude subscription. The interface is in English, with a switch to Slovak.
 
-![The city with demo data: buildings of projects, the Brain in the middle](docs/images/city-demo.png)
+![The city with demo data: three buildings of projects and the Brain in the middle, on the right the task status with one task waiting for approval](docs/images/city-demo.png)
 
 *Screenshot from the built-in demo data (the app shows a sample city when no server is running).*
 
-![Entering a floor: the office of the team and an approval card](docs/images/enter-floor.gif)
+![Animation: a click on a floor flies into the team's office, the agent Notes waits with a "Write file" card and the user approves it](docs/images/enter-floor.webp)
 
-*Click a floor to open its office; an agent waiting for approval shows a card (demo data).*
+*Click a floor to open its office; an agent waiting for approval shows a card with the exact change, and one click lets it continue (demo data).*
 
 ## What you get
 
@@ -24,6 +24,14 @@
 - **Control center.** You change the app itself by talking to its own agent.
 
 Full list: [docs/FEATURES.md](docs/FEATURES.md).
+
+## Workroom
+
+The Workroom (key **W**) is an overview of every running and waiting conversation and every team on one screen, without 3D. On the left all conversations of the city: what is waiting for you (with Allow and Reject right in the row), what is running and what finished today. In the middle the chat of the one you open, on the right a small map of the city with the floors where something is happening.
+
+![Animation of the Workroom: the list of waiting and running conversations, an approval right in the list and switching between the teams' conversations](docs/images/workroom.webp)
+
+*The Workroom with demo data: approve a step in the list, then switch between the teams at work.*
 
 ## Editions
 

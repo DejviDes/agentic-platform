@@ -9,11 +9,11 @@
 import { active, homeModule, focusConv, city, setState, workroom } from './state.js';
 import { $, esc, STANDALONE } from './utils.js';
 import { BUILDINGS, HOME_BUILDINGS } from './demo-data.js';
-import { WORLD } from './world.js';
+import { WORLD, ACTIONS } from './world.js';
 import { labelRenderer, renderer } from './scene-base.js';
 import { agentIndex, CONV_STORE, floorCount, permission, isReal, messageConv, stop } from './api.js';
 import { chatP, convState, setFocus, newConvWith, openConv } from './conversations.js';
-import { pendingRequest, todayData, todayTasks, todayAlerts, refreshPanel, toast } from './panel.js';
+import { pendingRequest, selectAgent, todayData, todayTasks, todayAlerts, refreshPanel, toast } from './panel.js';
 import { backToCity, enterFloor } from './navigation.js';
 import { openPalette } from './command-palette.js';
 import { openUsage } from './usage-window.js';
@@ -25,7 +25,7 @@ import { locale, t as tr, tn } from './i18n.js';
 const KEY = { mode: 'city-workroom', pack: 'city-workroom-pack', status: 'city-workroom-status19', conv: 'city-workroom-conv', map: 'city-workroom-without-map', today: 'city-workroom-without-today' };
 const read = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
 const save = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
-const P = { q: '', building: 'all', po: null, more: false, agOpen: false, pack: false, status: false, withoutMap: false, withoutToday: false, drawT: null, lastConv: null };
+const P = { q: '', building: 'all', po: null, more: false, agOpen: false, pack: false, status: false, withoutMap: false, withoutToday: false, drawT: null, lastConv: null, demoOpen: null };
 const DAY = 864e5, MAX_RECENT = 12;
 const without = (s) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); // without diacritics like command-palette.js
 const write = (el, h) => { if (el && el._h !== h) { el._h = h; el.innerHTML = h; } }; // the DOM changes only on change (hover and click do not lose their element)
@@ -59,10 +59,25 @@ function when(ms) {
 const duration = (from) => { const m = Math.floor((Date.now() - from) / 60000); return m < 1 ? tr('app.workroom.less_min') : m < 60 ? tr('app.workroom.min', { m }) : tr('app.workroom.h_min', { h: Math.floor(m / 60), m: m % 60 }); };
 const isPending = (k) => k.status === 'pending' || k.status === 'reply';
 
+// ---------- demo mode (2026-11-27): the list from the simulated tasks (WORLD.tasks), so the Workroom is not empty in the demo ----------
+// pending (with the agent's approval request right in the row), running and done; a click enters the floor and selects the agent (no server calls)
+function demoConv() {
+  const pid = new Map(); for (const b of BUILDINGS) for (const p of b.floors) pid.set(p.n, p.id || p.n);
+  const now = Date.now(), ago = (t) => now - Math.max(0, WORLD.time - t) * 1000, out = [];
+  for (const u of WORLD.tasks) {
+    const status = u.column === 'pending' ? 'pending' : u.column === 'doing' || u.column === 'flies' ? 'running' : u.column === 'done' ? 'done' : null;
+    const a = WORLD.floors.get(u.p)?.agents[u.a]; if (!status || !a || !pid.has(u.p)) continue;
+    out.push({ id: 'demo-' + u.id, demo: true, n: u.p, ai: u.a, floor: pid.get(u.p), agent: a.lead ? 'lead' : a.name, title: u.text, status, changed: ago(u.end ?? u.time), start: status === 'running' ? ago(u.time) : 0 });
+  }
+  return out;
+}
+const demoRequest = (k) => { const r = k.status === 'pending' && WORLD.floors.get(k.n)?.agents[k.ai]?.request; return r ? { id: k.id, what: r[0], where: r[1] } : null; };
+const convs = () => (isReal() ? [...CONV_STORE.conv.values()] : demoConv());
+
 // ---------- list data (same rules as the Overview in panel.js: teammates' tasks only when waiting, leads with running tasks in Running) ----------
 function build() {
   const M = floors(), all = [], children = new Map(), poP = new Map(); // poP: pid → { pending, running, n } for the mini status
-  for (const k of CONV_STORE.conv.values()) {
+  for (const k of convs()) {
     if (k.hidden) continue;
     const I = M.get(k.floor); if (!I) continue;
     all.push(k);
@@ -94,14 +109,14 @@ function build() {
 // ---------- list ----------
 const short = (n) => String(n || '').replace(/\s*\(.*?\)\s*/g, ' ').trim(); // "Experimental floor (phase 3)" → "Experimental floor"
 function row(k, D) {
-  const I = D.M.get(k.floor), update = !!chatP() && convState.open === k.id;
+  const I = D.M.get(k.floor), update = k.demo ? P.demoOpen === k.id && active?.kind === 'floor' && active.n === k.n : !!chatP() && convState.open === k.id;
   const running = k.status === 'running' || D.children.has(k.id), point = isPending(k) ? 'pending' : running ? 'work' : k.status === 'error' ? 'error' : '';
   const ag = agentName(k, I), lead = k.agent === 'lead', where = short(I.n) + (lead ? '' : ` · ${ag}`);
   const path = `${I.building} › ${I.n} · ${ag}${k.parent ? ' · ' + tr('app.workroom.task') : ''}${running && k.start ? ' · ' + tr('app.workroom.running_od', { time: duration(k.start) }) : k.changed ? ` · ${when(k.changed)}` : ''}`;
   // dot only while running, waiting and on error, otherwise no space is reserved for it (v19)
   let h = `<div class="pr-r ${point ? 'sb' : ''} ${isPending(k) ? 'pending' : ''} ${update ? 'update' : ''}" tabindex="0" role="button" data-pa="open" data-id="${esc(k.id)}" title="${esc(`${k.title || tr('app.workroom.without_title')}\n${path}`)}">${point ? `<span class="point ${point}"></span>` : ''}<div style="min-width:0"><div class="t">${k.pinned ? `<span class="pinZ">${ico('pin')}</span>` : ''}${esc(k.title || tr('app.workroom.without_title'))}</div>`;
   if (k.status === 'pending') {
-    const z = pendingRequest(k); // a simple request can be handled in the row, a plan and delegation only in the thread (like the Overview, wave 2)
+    const z = k.demo ? demoRequest(k) : pendingRequest(k); // a simple request can be handled in the row, a plan and delegation only in the thread (like the Overview, wave 2)
     h += z ? `<div class="ziad" title="${esc(`${z.what || ''} · ${z.where || ''}`)}">${ico('pending')} ${esc(String(z.what || tr('app.workroom.approve')).slice(0, 40))}</div><div class="actions"><button class="pr-b ok small" data-pa="allow" data-z="${esc(z.id)}">${tr('app.workroom.allow')}</button><button class="pr-b no small" data-pa="reject" data-z="${esc(z.id)}">${tr('app.workroom.reject')}</button></div>`
       : '<div class="plan">' + ico('pending') + ' ' + tr('app.workroom.open_approve') + '</div>';
   } else if (k.status === 'reply') h += '<div class="plan">' + ico('chat') + ' ' + tr('app.workroom.your_reply') + '</div>';
@@ -109,10 +124,13 @@ function row(k, D) {
   h += '</div><div class="pr-rc">';
   // project label in the building's color (as in Layers); ■ stop while running and ✓ handled for "your reply" (like the Overview in the city) show on hover
   const st = `<div class="c tag ${k.status === 'running' || k.status === 'reply' ? 'hasSt' : ''}" style="--fb:${I.color}">${esc(where)}</div>`;
- h += `<div class="hov"><button class="stop pin ${k.pinned ? 'on' : ''}" data-pa="pin" data-id="${esc(k.id)}" title="${k.pinned ? tr('app.workroom.unpin') : tr('app.workroom.pin')}">${ico('pin')}</button>`;
+  if (!k.demo) { // demo mode: no pin or stop (they talk to the server)
+  h += `<div class="hov"><button class="stop pin ${k.pinned ? 'on' : ''}" data-pa="pin" data-id="${esc(k.id)}" title="${k.pinned ? tr('app.workroom.unpin') : tr('app.workroom.pin')}">${ico('pin')}</button>`;
   if (k.status === 'running') h += `<button class="stop" data-pa="stop" data-id="${esc(k.id)}" title="${tr('app.workroom.stop')}">${ico('stop')}</button>`;
   else if (k.status === 'reply') h += `<button class="stop select" data-pa="resolve" data-id="${esc(k.id)}" title="${tr('app.workroom.resolved_t')}">${tr('app.workroom.resolved')}</button>`;
-  h += '</div>' + st;
+  h += '</div>';
+  }
+  h += st;
   return h + '</div></div>';
 }
 function drawList(D) {
@@ -238,6 +256,12 @@ export function closeWorkroom() {
   refreshPanel();
 }
 async function openConvPr(id) {
+  if (String(id).startsWith('demo-')) { // demo mode: the floor with the agent (the simulated chat is the agent's log)
+    const k = demoConv().find((x) => x.id === id); if (!k) return;
+    P.demoOpen = id; if (homeModule) setState({ homeModule: null });
+    if (active?.kind === 'floor' && active.n === k.n) selectAgent(k.ai); else await enterFloor(k.n, k.ai);
+    return draw();
+  }
   const k = CONV_STORE.conv.get(id), I = k && floors().get(k.floor); if (!I) return;
   if (I.dk) { await M.home?.openHomeChat(I.dk, { id }); return draw(); } // Home agent: thread in the building's chat (a building without chat: only its panel)
   const n = floorCount(k.floor); if (!n || !WORLD.floors.has(n)) return;
@@ -306,6 +330,7 @@ function click(e) {
     case 'usage': openUsage(id); break; // Limit usage window (usage-window.js)
     case 'allow': case 'reject': { // Allow / Deny directly in the row (same as the Overview, wave 2)
       e.stopPropagation(); t.parentElement.querySelectorAll('button').forEach((x) => (x.disabled = true));
+      if (String(t.dataset.z).startsWith('demo-')) { const k = demoConv().find((x) => x.id === t.dataset.z); if (k) ACTIONS.decide(k.n, k.ai, a === 'allow'); toast(a === 'allow' ? tr('app.workroom.allowed') : tr('app.workroom.rejected')); refreshPanel(); draw(); break; }
       permission(t.dataset.z, a === 'allow' ? 'allow' : 'reject', '').then(() => toast(a === 'allow' ? tr('app.workroom.allowed') : tr('app.workroom.rejected'))).catch((err) => { toast(tr('app.workroom.request_notPending', { error: err.message })); $('prScroll')._h = ''; draw(); });
       break;
     }
@@ -368,7 +393,7 @@ export function initWorkroom() {
   document.body.appendChild($('prMpop')); // bubble at the strip: outside the side panel, otherwise it gets clipped
   $('prMap').addEventListener('mouseover', (e) => {
     const p = e.target.closest('.pass'); if (!p) return;
-    const s = [...CONV_STORE.conv.values()].filter((k) => k.floor === p.dataset.po && !k.hidden), c = s.filter((k) => k.status === 'pending').length, b = s.filter((k) => k.status === 'running').length;
+    const s = convs().filter((k) => k.floor === p.dataset.po && !k.hidden), c = s.filter((k) => k.status === 'pending').length, b = s.filter((k) => k.status === 'running').length;
     // 2026-11-19: description directly at the strip (bubble to the left of the map), not at the bottom below the map
     const [building, ...po] = p.dataset.t.split(' › '), el = $('prMpop'), r = p.getBoundingClientRect();
     el.innerHTML = `<b>${esc(po.join(' › ') || building)}</b><span>${esc(building)}${c ? ` · <em class="c">${tr('app.workroom.n_pending', { n: c })}</em>` : ''}${b ? ` · <em class="b">${tr('app.workroom.n_running', { n: b })}</em>` : ''}</span><i>${tr('app.workroom.bubble')}</i>`;

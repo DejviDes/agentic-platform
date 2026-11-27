@@ -6,13 +6,13 @@
 
 > Stav: **alfa**. Beží lokálne na tvojom počítači, na tvojom predplatnom Claude. Rozhranie je po anglicky s prepínačom do slovenčiny (Nastavenia › Vzhľad alebo `"language": "sk"` vo `world.json`).
 
-![Mesto s ukážkovými dátami: budovy projektov, v strede Mozog](docs/images/city-demo.png)
+![Mesto s ukážkovými dátami: tri budovy projektov a v strede Mozog, vpravo stav úloh s jednou úlohou, ktorá čaká na schválenie](docs/images/city-demo.png)
 
 *Snímka zo zabudovaných ukážkových dát (appka bez servera ukazuje ukážkové mesto).*
 
-![Vstup na poschodie: kancelária tímu a karta na schválenie](docs/images/enter-floor.gif)
+![Animácia: klik na poschodie preletí do kancelárie tímu, agent Notes čaká s kartou „Write file“ a používateľ ju schváli](docs/images/enter-floor.webp)
 
-*Klik na poschodie otvorí kanceláriu; agent, ktorý čaká na schválenie, ukáže kartu (ukážkové dáta, rozhranie po anglicky).*
+*Klik na poschodie otvorí kanceláriu; agent, ktorý čaká na schválenie, ukáže kartu s presnou zmenou a jedným klikom pokračuje (ukážkové dáta, rozhranie po anglicky).*
 
 ## Čo dostaneš
 
@@ -24,6 +24,14 @@
 - **Riadiaca centrála.** Mesto si vieš upraviť rozhovorom s jeho vlastným agentom.
 
 Celý zoznam: [docs/sk/FEATURES.md](docs/sk/FEATURES.md).
+
+## Pracovňa
+
+Pracovňa (kláves **W**) je prehľad všetkých bežiacich a čakajúcich konverzácií a tímov na jednom mieste, bez 3D. Vľavo sú všetky konverzácie mesta: čo čaká na teba (s tlačidlami Povoliť a Zamietnuť priamo v riadku), čo beží a čo je dnes hotové. V strede je chat tej, ktorú otvoríš, vpravo malá mapa mesta s poschodiami, kde sa niečo deje.
+
+![Animácia Pracovne: zoznam čakajúcich a bežiacich konverzácií, schválenie priamo v zozname a prepínanie medzi konverzáciami tímov](docs/images/workroom.webp)
+
+*Pracovňa s ukážkovými dátami: krok schváliš v zozname a potom prepínaš medzi tímami, ktoré pracujú (rozhranie po anglicky).*
 
 ## Varianty
 

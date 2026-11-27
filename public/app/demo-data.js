@@ -6,7 +6,8 @@
 import { t as T, language } from './i18n.js';
 
 // Proper names of the demo are written in Slovak; in English they are translated by this map (ids such as 'Second Brain' and
-// 'Riadiaca centrála' stay, the app and the server use them as floor keys).
+// 'Dispečing' stay, the app and the server use them as floor keys). 'Riadiaca centrála' is shown as 'Control center' in the demo
+// (2026-11-27, README screenshots); control-center.js accepts it in demo mode via DEMO_CONTROL_CENTER_NAME. Real mode names come from the server.
 const EN_NAMES = {
   'Štúdium': 'Study', 'Práca': 'Work', 'Projekty': 'Projects', 'Archív': 'Archive', 'Osobné': 'Personal', 'Zdroje': 'Sources',
   'Diplomovka': 'Thesis', 'Algoritmy': 'Algorithms', 'Databázy': 'Databases', 'Angličtina': 'English', 'Štatistika': 'Statistics', 'Seminár': 'Seminar',
@@ -16,7 +17,7 @@ const EN_NAMES = {
   'Rešerš': 'Research', 'Poznámky': 'Notes', 'Sadzba': 'Typesetting', 'Skúšač': 'Examiner', 'Testy': 'Tests', 'Vysvetľovač': 'Explainer',
   'Obsah': 'Content', 'Automatizácia': 'Automation', 'Dokumentácia': 'Documentation', 'Staviteľ mesta': 'City builder', 'Panely a dizajn': 'Panels and design',
   'Správca': 'Keeper', 'Ranný brief': 'Morning brief', 'Triedenie': 'Sorting', 'Denník': 'Journal', 'Úlohy': 'Tasks', 'Redaktor': 'Editor',
-  'Prezentácia': 'Presentation', 'Dizajn': 'Design',
+  'Prezentácia': 'Presentation', 'Dizajn': 'Design', 'Riadiaca centrála': 'Control center',
   'poznamky/kapitola-2.md': 'notes/chapter-2.md', 'poznamky/zhrnutie.md': 'notes/summary.md',
   'diplomovka/poznamky/kapitola-2.md': 'thesis/notes/chapter-2.md', 'algoritmy/slajdy/prednaska-08.md': 'algorithms/slides/lecture-08.md', 'diplomovka/zdroje.md': 'thesis/sources.md',
   'projekty/blog/README.md': 'projects/blog/README.md', 'projekty/recepty/README.md': 'projects/recipes/README.md', 'inbox → projekty/…': 'inbox → projects/…',
@@ -29,6 +30,7 @@ const EN_WORDS = {
   Blog: ['article', 'post'], 'Cvičenie': ['workout', 'training'], 'Recepty': ['recipe', 'cooking'], Portfólio: ['portfolio'], 'Second Brain': ['journal', 'sorting', 'notes'],
 };
 const EN = language() !== 'sk';
+export const DEMO_CONTROL_CENTER_NAME = () => N('Riadiaca centrála');
 const N = (x) => (EN && typeof x === 'string' ? EN_NAMES[x] || x : x);
 const renameKeys = (o, extra) => Object.fromEntries(Object.entries(o).map(([k, v]) => [N(k), extra ? [...v, ...(extra[k] || [])] : v]));
 const localizeAgent = (a) => (EN ? { ...a, name: N(a.name), request: a.request?.map(N) } : a);

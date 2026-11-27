@@ -12,6 +12,7 @@ import { setEditor, editorText } from './editor.js';
 import { enterFloor } from './navigation.js';
 import { dispatchRunning, dispatchRefresh, saveDispatchState } from './dispatch.js';
 import { ico } from './icons.js';
+import { DEMO_CONTROL_CENTER_NAME } from './demo-data.js';
 import { locale, t as tr, tn } from './i18n.js';
 
 export const CONTROL_CENTER = {
@@ -19,7 +20,7 @@ export const CONTROL_CENTER = {
   status: null, error: '', ver: 0, // state = response of /api/control-center
   expand: false, diff: null, commit: false, msg: '', outside: new Set(), running: false, push: false, // bar UI (outside = files unchecked from the commit)
 };
-export const isControlCenter = (n) => n === CONTROL_CENTER.n;
+export const isControlCenter = (n) => n === CONTROL_CENTER.n || (!isReal() && !!n && n === DEMO_CONTROL_CENTER_NAME()); // demo in English: 'Control center' (demo-data.js)
 const onControlCenter = () => active?.kind === 'floor' && isControlCenter(active.n);
 
 // ---------- state from the server ----------

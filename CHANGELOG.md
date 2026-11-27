@@ -2,6 +2,16 @@
 
 Every release has its own version (a `vX.Y.Z` tag in the repository). Update with `npm run update`, which downloads only the changes and shows you what is new. Y goes up with new features, Z with fixes.
 
+## 0.2.1 (2026-11-27)
+
+Better screenshots and a Workroom demo in the README.
+
+- **Sharper pictures in the README:** screenshots in double resolution (sharp on Retina screens) and smooth animations instead of the old GIF: entering a floor with an approval card, and the Workroom.
+- **The Workroom in demo mode:** without a server the Workroom now shows the sample conversations of the demo city (waiting for you, running, done today). Approve a step right in the list or open a team's conversation, nothing is sent anywhere.
+- **Control center in the English demo:** the sample Control center floor no longer shows its Slovak name.
+- **A new section about the Workroom** in the README and pictures in the usage guide.
+- **Translation check:** the built-in check now stops when a text is missing in English or Slovak.
+
 ## 0.2.0 (2026-11-27)
 
 The first public release, now called **Agentic Platform**.

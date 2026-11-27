@@ -21,6 +21,8 @@
 4. **Model and effort** are also next to the message field. Higher effort = more thorough, but it uses more of your limit.
 5. **Enter** sends the message, **⌘↵** sends it right away, even while the agent is working.
 
+![The office of the Databases floor: the team on the left, on the right the agent Notes with a "Write file" card and the Approve, Always and Reject buttons](images/floor-approval.png)
+
 ## Team
 
 - Ask the lead to **"propose a team"**. It goes through the project and proposes team members with a card (name, role, what they do). You click Hire, Edit or No.
@@ -39,6 +41,8 @@
 ## Workroom (W)
 
 All conversations of the city on one screen without 3D: on the left the list (waiting for you, running, recent), in the middle the chat. Good for longer work.
+
+![The Workroom: on the left the conversations waiting for you and running, in the middle the open conversation with an approval card, on the right a small map of the city](images/workroom.png)
 
 ## Control center
 

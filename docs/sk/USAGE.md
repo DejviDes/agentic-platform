@@ -21,6 +21,8 @@
 4. **Model a effort** zmeníš tiež pri poli na písanie. Vyšší effort = dôkladnejšie, ale viac míňa z limitu.
 5. **Enter** pošle správu, **⌘↵** pošle hneď aj počas práce agenta.
 
+![Kancelária poschodia Databases: vľavo tím, vpravo agent Notes s kartou „Write file“ a tlačidlami Approve, Always a Reject (rozhranie po anglicky)](../images/floor-approval.png)
+
 ## Tím
 
 - Povedz vedúcemu **„navrhni mi tím“**. Prejde projekt a kartou navrhne zamestnancov (meno, rola, čo robí). Klikneš Prijať, Upraviť alebo Nie.
@@ -39,6 +41,8 @@
 ## Pracovňa (W)
 
 Všetky konverzácie mesta na jednej obrazovke bez 3D: vľavo zoznam (čo čaká na teba, čo beží, nedávne), v strede chat. Hodí sa na dlhšiu prácu.
+
+![Pracovňa: vľavo konverzácie, ktoré čakajú na teba a bežia, v strede otvorená konverzácia s kartou na schválenie, vpravo malá mapa mesta (rozhranie po anglicky)](../images/workroom.png)
 
 ## Riadiaca centrála
 
