@@ -1,0 +1,11 @@
+node_modules/
+data/
+data-backup-*/
+data.migrating*/
+world.json
+svet.json
+.DS_Store
+.playwright-mcp/
+tests/vystup/
+notifier/*.app/
+*.log

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en" data-style="a">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agentic Platform</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app/style.css">
+<script>
+// ⚑ To the control center: latest errors from the console (circular buffer of 12, the text is assembled only on sending, a repeat = counter)
+(() => { const B = window.__console = [], give = (u, a) => { const p = B[B.length - 1]; if (p && p.u === u && p.a[0] === a[0] && a.length === 1) { p.n++; p.t = Date.now(); return; } B.push({ t: Date.now(), u, a, n: 1 }); if (B.length > 12) B.shift(); };
+  for (const u of ['error', 'warn']) { const o = console[u]; console[u] = function (...a) { give(u, a); return o.apply(this, a); }; }
+  addEventListener('error', (e) => give('error', [e.error || `${e.message} (${e.filename}:${e.lineno})`]));
+  addEventListener('unhandledrejection', (e) => give('promise', [e.reason])); })();
+</script>
+<script src="app/storage-migrate.js"></script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body data-view="city">
+<script>try { if (localStorage.getItem('city-larger-font') !== '0') document.body.classList.add('largerFont'); } catch {}</script>
+<script>if (new URLSearchParams(location.search).has('conv')) document.body.classList.add('standalone'); if (new URLSearchParams(location.search).has('file')) document.body.classList.add('standalone', 'fileWindow'); // standalone window of one conversation or file (app/utils.js STANDALONE, app/file-view.js)</script>
+<header id="top">
+  <div class="marker"><span class="serif" data-i18n="app.index.marker">Agentic Platform</span></div>
+  <div id="district"><button data-r="city" class="on" data-i18n="app.index.rCity">City</button><button data-r="work" data-i18n="app.index.rWork">Work</button><button data-r="home" data-i18n="app.index.rHome">Home</button></div>
+  <div id="crumbs"></div>
+  <button class="tbT" id="workroomBtn" data-i18n-title="app.index.workroomT" title="Workroom: conversation list, chat and city status without 3D (W)" data-i18n="app.index.workroom">Workroom</button>
+  <div class="right">
+    <button class="tbT" id="searchBtn" data-i18n-title="app.index.searchT" title="Search the whole city: conversations, floors, buildings, actions (⌘K)"><span data-i18n="app.index.search">Search</span> <kbd>⌘K</kbd></button>
+    <button class="tbT tbPending" id="pendingBtn" hidden></button>
+    <div id="toolsUi"><button class="tbIco" id="toolsBtn" data-i18n-title="app.index.tools" title="Connected apps" aria-haspopup="true" aria-expanded="false"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v4M15 3v4M7 7h10v4a5 5 0 0 1-10 0V7zM12 16v5" /></svg><i class="nstPoint"></i></button>
+      <div id="toolsMenu" class="box" role="menu"><div class="nmHl" data-i18n="app.index.tools">Connected apps</div><div id="tools"></div><div id="toolsNep"></div></div></div>
+    <div class="limUi"><span id="limits"></span><div id="limitsTip" class="box"></div></div>
+    <div id="setUi"><button class="tbIco" id="setBtn" data-i18n-title="app.index.menuT" title="Menu: settings, lock, shortcuts" aria-haspopup="true" aria-expanded="false">⋯</button>
+      <div id="setMenu" class="box" role="menu">
+        <div class="nmR" data-nm="settings"><span class="nmN" data-i18n="app.index.settings">Settings…</span><span class="nmS">⌘,</span></div>
+        <div class="nmSep"></div>
+        <div class="nmR" data-nm="taskOffice"><span class="nmN" data-i18n="app.index.error">Report a bug</span><button class="nmS" id="taskOfficeBtn" data-i18n-title="app.index.errorT" title="Point out what is wrong in the app and send it to the Control center (U)">U</button></div>
+        <div class="nmR" data-nm="shortcuts"><span class="nmN" data-i18n="app.index.shortcuts">Shortcuts</span><button class="nmS" id="shortcutsBtn" data-i18n-title="app.index.shortcutsT" title="Show or hide the keyboard shortcuts row (?)">?</button></div>
+        <div class="nmR" data-nm="lock"><span class="nmN" data-i18n="app.index.lock">Lock the City</span><button class="nmS" id="lockBtn" data-i18n-title="app.index.lockT" title="Lock the City (unlock with Touch ID)">Touch ID</button></div>
+        <div class="nmInfo" data-i18n="app.index.info">Runs on your Claude subscription, never through an API key.</div>
+      </div></div>
+  </div>
+</header>
+
+<aside id="team" class="box"></aside>
+
+<button id="panelBtn" data-i18n-title="app.index.panelBtn" title="Hide / show panel (P)">›</button>
+<aside id="panel" class="box">
+  <div id="panelTurn" data-i18n-title="app.index.panelTurn" title="Drag to resize the panel · double-click = wide / narrow"></div>
+  <div class="zad">
+    <div class="zadRow">
+      <select id="fromDest"></select><div class="pick" id="fromDestUi"><button class="selectBtn" id="fromDestBtn"></button><div class="selectMenu" id="fromDestMenu"></div></div>
+      <input id="zText" data-i18n-placeholder="app.index.zText" placeholder="Write a task… (it goes to the right agent)">
+      <button class="btn p" id="fromAdd" data-i18n="app.index.add">Add</button>
+    </div>
+    <div id="hint" data-i18n="app.index.hint">Try for example “generate 10 induction examples” or “run the tests for prep 08”.</div>
+  </div>
+  <div id="prNewH"><div class="serif" data-i18n="app.index.whatNeeded">What needs doing?</div><div class="mono" data-i18n="app.index.routerInfo">The router picks the floor and the agent.</div></div>
+  <div id="router"></div>
+  <div class="brainCard" id="brainCard"><canvas id="brainMini" width="128" height="88"></canvas><div class="t" id="brainText"></div></div>
+  <div id="content"></div>
+  <div id="agEnter"><button id="convDown" data-i18n-title="app.index.convDown" title="To the end of the conversation"><span class="convWriting"><span data-i18n="app.index.writing">typing</span><span class="dots"><i></i><i></i><i></i></span></span><b>↓</b></button><div id="convAlert"></div><div id="convQueue"></div><div id="convDelegTopbar"></div><div id="convSelectTopbar"></div><div class="convRecipient" id="convRecipient"></div><div id="agImage"></div><div class="pick up" id="commandUi"><div class="selectMenu" id="commandMenu"></div></div><div class="convField"><div id="agEditor"><textarea id="agText" rows="1" data-i18n-placeholder="app.index.agText" placeholder="Write to the lead…" data-i18n-title="app.index.agTextT" title="Enter sends, Shift+Enter new line, ⌘V pastes a file or screenshot, ``` starts a code block"></textarea></div><div class="convDown"><div class="pick up" id="plusUi"><button class="convIco" id="plusBtn" data-i18n-title="app.index.plusT" title="Attach a file, insert a code block or a skill" data-i18n-aria="app.index.plusA" aria-label="Add"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" /></svg></button><div class="selectMenu" id="plusMenu"><button class="po auto" id="imageBtn"></button><input type="file" id="imageFile" multiple hidden><button class="po auto" id="codeBtn"></button><button class="po auto" id="skillBtn"><b>Skill</b><span data-i18n="app.index.skillInfo">or type / and pick; add the task after it</span></button></div></div><div class="pick up" id="recipientUi"><button class="choiceBtn recipientBtn" id="recipientBtn" data-i18n-title="app.index.recipientT" title="Who you are writing to"></button><div class="selectMenu" id="recipientMenu"></div></div><div class="pick up" id="agChoiceUi"><button class="choiceBtn" id="agChoiceBtn" data-i18n-title="app.index.choiceT" title="Model, effort and permission mode for this conversation"></button><div class="selectMenu" id="agChoiceMenu"></div></div><button id="micBtn"></button><button class="btn p" id="agSend">→</button></div></div><div id="micStatus"></div></div>
+</aside>
+
+<!-- Workroom (UX audit wave 3, app/workroom.js): bar, list on the left and mini status on the right; in the middle is #panel with the chat (CSS body.pracovna) -->
+<div id="workroom">
+  <header class="pr-top">
+    <span id="prBack"></span>
+    <button class="pr-b" data-pa="city" data-i18n-title="app.index.prCityT" title="To the 3D city, view of the whole city"><svg class="ikn" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 10.5 12 3.5l8.5 7" /><path d="M5.5 9.5V20h13V9.5" /><path d="M10 20v-6h4v6" /></svg> <span data-i18n="app.index.rCity">City</span></button>
+    <span class="pr-title serif" data-i18n="app.index.workroom">Workroom</span><span id="prPath"></span>
+    <span class="pr-gap"></span>
+    <button class="pr-b" data-pa="search" data-i18n-title="app.index.prSearchT" title="Search the whole city"><svg class="ikn" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m20 20-4.2-4.2" /></svg> <span data-i18n="app.index.search">Search</span> <kbd>⌘K</kbd></button>
+    <button class="pr-b icon" data-pa="status" id="prStatusBtn" data-i18n-title="app.index.prStatusT" title="City status ( ] )"><svg class="ikn" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5" /><path d="M14.5 4.5v15" /></svg></button>
+  </header>
+  <aside class="pr-list" data-i18n-aria="app.index.convA" aria-label="Conversations">
+    <div class="pr-zh"><div class="pr-search"><input id="prSearch" type="text" data-i18n-placeholder="app.index.prSearch" placeholder="Search…" autocomplete="off" spellcheck="false"><div class="pick prF" id="prFilterUi"><button class="selectBtn" id="prFilterBtn" data-i18n-title="app.index.prFilterT" title="Filter by building"></button><div class="selectMenu" id="prFilterMenu"></div></div></div><button class="pr-b icon create" data-pa="create" data-i18n-title="app.index.newT" title="New task: the “What needs doing?” router suggests a floor and an agent"><svg class="ikn" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg></button><button class="pr-b icon" data-pa="pack" id="prPackBtn" data-i18n-title="app.index.packT" title="Collapse the list ( [ )"><svg class="ikn" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5" /><path d="M9.5 4.5v15" /></svg></button></div>
+    <div class="pr-fl" id="prFl"></div>
+    <div class="pr-scroll" id="prScroll"></div>
+    <div class="pr-strip" id="prStrip"></div>
+  </aside>
+  <aside class="pr-status" data-i18n-aria="app.index.statusA" aria-label="City status">
+    <div class="pr-sk"><button class="pr-collapse" id="prMapToggle" data-pa="section" data-s="map" data-i18n-title="app.index.mapT" title="Collapse or expand the city overview"></button><button class="pr-close" data-pa="status" data-i18n-title="app.index.closeT" title="Close ( ] )"><svg class="ikn" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg></button></div>
+    <div id="prMapSec">
+      <div class="pr-map" id="prMap" data-i18n-title="app.index.mapClick" title="Click a bar to filter the list"></div>
+      <div class="pr-mpop" id="prMpop"></div>
+      <div class="pr-row" id="prRow"></div>
+    </div>
+    <div id="controlCenterTopbar"></div>
+    <div id="prUsage"></div>
+    <div id="prAgents"></div>
+    <div id="prToday"></div>
+  </aside>
+</div>
+<!-- settings controls: handled by the original modules by id, settings.js moves them into the Settings window (#nsWindow) -->
+<div id="nsStock" hidden>
+  <button class="nmS" id="mode">demo</button>
+  <button class="nmS" id="dayBtn"></button>
+  <span class="nmS" id="clock"></span>
+  <button class="nmS" id="quickBtn" data-i18n="app.index.off">off</button>
+  <button class="nmS" id="originalBtn" data-i18n="app.index.off">off</button>
+  <button class="nmS" id="rotationBtn" data-i18n="app.index.off">off</button>
+  <button class="nmS" id="fontBtn" data-i18n="app.index.isOn">on</button>
+  <button class="nmS" id="bellBtn"></button>
+</div>
+<div id="tip" class="box"></div>
+<div id="toast" class="box"></div>
+<div id="hint" class="mono"><span class="nvM" data-i18n="app.index.nvM">Click a floor = enter · double-click a house = inside · G = Brain · P = panel · W = Workroom · ⌘K = search · U = report a bug · Esc = back · ? = hide</span><span class="nvP" data-i18n="app.index.nvP">Esc = back · P = panel · ⌘K = search · U = report a bug · Enter = send · ⌘↵ = send now · ? = hide</span></div>
+<div id="transition"></div>
+<div id="showRam"><span></span></div>
+<div id="showCard" class="box"></div>
+
+<script type="module" src="app/main.js"></script>
+</body>
+</html>

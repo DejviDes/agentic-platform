@@ -1,0 +1,78 @@
+Agentic Platform License
+Version 1.0
+
+Copyright (c) 2026 David Trebatický (https://github.com/DejviDes).
+All rights reserved.
+
+This license applies to the software in this repository, including its source
+code, documentation, images and other files (the "Software"). The Software is
+source-available. It is NOT open source.
+
+1. Permitted use
+
+   Subject to the conditions below, you may, free of charge:
+
+   a) download, install and run the Software on devices you own or control;
+   b) use the Software for your own personal, educational or professional work,
+      including at your workplace;
+   c) modify the Software and create changes to it, for your own use;
+   d) update your copy, including your modifications, with new releases
+      published in the official repository.
+
+2. Restrictions
+
+   You may not, without the prior written permission of the copyright holder:
+
+   a) publish, distribute, share, sublicense, sell, rent or otherwise make
+      available the Software or any modified version of it, in whole or in
+      substantial part, in source or compiled form, to any third party;
+   b) offer the Software or any modified version of it to others as a hosted
+      or managed service;
+   c) remove or alter this license, the copyright notice or any attribution in
+      the Software;
+   d) rename, rebrand or present the Software or any modified version of it as
+      your own product or work, or suggest that you are its author.
+
+   Forking the official repository within GitHub, as permitted by GitHub's
+   Terms of Service, is allowed only for the purposes in section 1 and for
+   proposing contributions. It does not grant any right to distribute the
+   Software outside of GitHub or to use a fork in breach of this license.
+
+3. Contributions
+
+   If you submit a contribution (for example a pull request, patch or issue
+   with code), you grant the copyright holder a perpetual, worldwide,
+   irrevocable, royalty-free license to use, modify, distribute and relicense
+   your contribution as part of the Software.
+
+4. Third-party components
+
+   The Software depends on third-party components (for example Three.js and
+   the Claude Agent SDK) that are installed separately and are governed by
+   their own licenses and terms. This license does not apply to them. Using
+   Claude through the Software requires your own account and is subject to
+   Anthropic's terms.
+
+5. Termination
+
+   If you breach this license, your rights under it end automatically. You
+   must then stop using the Software and delete all copies, including
+   modified versions.
+
+6. No warranty and limitation of liability
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
+   OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE. THE SOFTWARE RUNS AI AGENTS THAT CAN READ AND CHANGE FILES ON
+   YOUR COMPUTER; YOU ARE RESPONSIBLE FOR REVIEWING AND APPROVING THEIR
+   ACTIONS.
+
+7. Other permissions
+
+   For any use not covered by this license (for example redistribution,
+   commercial partnerships or inclusion in another product), contact the
+   copyright holder through https://github.com/DejviDes.

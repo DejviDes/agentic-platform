@@ -1,0 +1,22 @@
+// tool-icons.js – Bar of connected tools: real icons (Simple Icons CC0, Figma, Chrome, Calendar with today's date, Notes).
+// Created by splitting the prototype public/dizajn-v12d.html (phase 1). Module map: brain Projekty/mesto-agentov/technika.md.
+import { simTime } from './daylight.js';
+import { t as T } from './i18n.js';
+
+// v12d: real tool icons. Notion, GitHub and Supabase are from the Simple Icons library (CC0, simple-icons@13.21.0,
+// paths inlined, nothing is downloaded), Figma and Chrome colored per their logo, Calendar and Apple Notes
+// drawn in the style of their icons (the Calendar shows today's day). bg = tile color.
+const ICON = (path, color) => `<svg viewBox="0 0 24 24"><path fill="${color}" d="${path}"/></svg>`;
+export const TOOLS = [
+  { k: 'notion', n: 'Notion', bg: '#ffffff', svg: ICON('M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046.935-.56.935-1.167V6.354c0-.606-.233-.933-.748-.887l-15.177.887c-.56.047-.747.327-.747.933zm14.337.745c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.139c-.093-.514.28-.887.747-.933zM1.936 1.035l13.31-.98c1.634-.14 2.055-.047 3.082.7l4.249 2.986c.7.513.934.653.934 1.213v16.378c0 1.026-.373 1.634-1.68 1.726l-15.458.934c-.98.047-1.448-.093-1.962-.747l-3.129-4.06c-.56-.747-.793-1.306-.793-1.96V2.667c0-.839.374-1.54 1.447-1.632z', '#000') },
+  { k: 'calendar', n: T('app.icons.calendar'), bg: '#ffffff', whole: true, svg: '' },
+  { k: 'github', n: 'GitHub', bg: '#181717', svg: ICON('M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12', '#fff') },
+  { k: 'figma', n: 'Figma', bg: '#1e1e1e', svg: '<svg viewBox="0 0 24 24"><path fill="#F24E1E" d="M9 2h3v6H9a3 3 0 0 1 0-6z"/><path fill="#FF7262" d="M12 2h3a3 3 0 0 1 0 6h-3z"/><path fill="#A259FF" d="M9 8h3v6H9a3 3 0 0 1 0-6z"/><circle fill="#1ABCFE" cx="15" cy="11" r="3"/><path fill="#0ACF83" d="M9 14h3v3a3 3 0 1 1-3-3z"/></svg>' },
+  { k: 'chrome', n: 'Chrome', bg: '#ffffff', svg: '<svg viewBox="0 0 24 24"><path fill="#EA4335" d="M12 12L3.34 7A10 10 0 0 1 20.66 7z"/><path fill="#FBBC04" d="M12 12l8.66-5A10 10 0 0 1 12 22z"/><path fill="#34A853" d="M12 12v10A10 10 0 0 1 3.34 7z"/><circle fill="#fff" cx="12" cy="12" r="4.6"/><circle fill="#1A73E8" cx="12" cy="12" r="3.6"/></svg>' },
+  { k: 'supabase', n: 'Supabase', bg: '#1c1c1c', svg: ICON('M11.9 1.036c-.015-.986-1.26-1.41-1.874-.637L.764 12.05C-.33 13.427.65 15.455 2.409 15.455h9.579l.113 7.51c.014.985 1.259 1.408 1.873.636l9.262-11.653c1.093-1.375.113-3.403-1.645-3.403h-9.642z', '#3ECF8E') },
+  { k: 'notes', n: T('app.icons.notes'), bg: '#ffffff', whole: true, svg: '<svg viewBox="0 0 24 24"><rect width="24" height="24" fill="#fff"/><rect width="24" height="7" fill="#FFCC29"/><rect y="7" width="24" height="0.8" fill="#E8B21E"/><g stroke="#D7D7DC" stroke-width="0.9"><path d="M3 12h18M3 15.5h18M3 19h18"/></g><g fill="#B9B9BE"><circle cx="3.6" cy="3.5" r=".6"/><circle cx="6" cy="3.5" r=".6"/><circle cx="8.4" cy="3.5" r=".6"/></g></svg>' },
+];
+export function calendarIcon() { // like Apple Calendar: a red strip with the day of the week and a big day number
+  const d = simTime(), day = T('app.icons.daysShort').split(',')[d.getDay()];
+  return `<svg viewBox="0 0 24 24"><rect width="24" height="24" fill="#fff"/><text x="12" y="7" text-anchor="middle" font-family="Inter, sans-serif" font-size="5.6" font-weight="700" fill="#E2483D">${day}</text><text x="12" y="20" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="400" fill="#1d1d1f">${d.getDate()}</text></svg>`;
+}

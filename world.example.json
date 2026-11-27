@@ -1,0 +1,36 @@
+{
+  "_note": "Template of the city settings. Copy it to world.json (ignored by git, it holds your paths) or ask your AI to \"set up my city\", it walks you through docs/SETUP.md. Everything is optional and can be changed any time without restarting the server (except modules).",
+
+  "user": { "name": "Alex" },
+  "language": "en",
+
+  "city": "layers",
+  "location": { "lat": 51.51, "lon": -0.13 },
+
+  "buildings": {
+    "projects": { "title": "Projects", "color": "#14a3b8", "root": "~/Projects", "archive": true, "exclude": ["_sandbox"], "notes": "~/Notes/Projects/{slug}.md" },
+    "work": { "title": "Work", "color": "#8a6cff", "root": "~/Work", "archive": true, "notes": "folder" },
+    "study": { "title": "Study", "color": "#4f7cff", "root": "~/Notes/Study/2026-fall", "code": "~/Code/study", "onlyWithClaudeMd": true, "subjectCode": true, "archive": false, "notes": "{path}/" }
+  },
+
+  "_notes": "notes on a building: \"folder\" = notes only in the project folder, never in the Brain; \"…/{slug}.md\" = file template ({slug} = folder name in lowercase with dashes, {name} = folder name, {path} = floor path); \"…/\" = folder template. Without notes the agent writes notes nowhere, it only puts them in its answer.",
+
+  "brain": { "title": "Brain", "path": "~/Notes", "kind": "obsidian", "private": ["Private"], "omitOrphaned": ["Inbox", "Archive", "_system"] },
+
+  "controlCenter": true,
+
+  "agents": { "model": "claude-opus-5-5", "effort": "medium" },
+
+  "guards": { "bannedPush": ["gitlab.company.example"] },
+
+  "modules": { "home": false, "mail": false, "mobile": false },
+
+  "archiveAfterDays": 30,
+  "maxFloors": 12,
+
+  "floors": {
+    "~/Projects/website": { "title": "Website", "description": "Personal website", "order": 1, "effort": "high" },
+    "~/Projects/old-experiment": { "archive": true },
+    "~/Projects/secret": { "hide": true }
+  }
+}

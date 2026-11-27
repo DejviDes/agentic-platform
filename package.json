@@ -1,0 +1,23 @@
+{
+  "name": "agentic-platform",
+  "version": "0.2.0",
+  "description": "Your projects as a 3D city. A building = a group of projects, a floor = a folder, on each floor a team of Claude Code agents. Runs locally on your Claude subscription.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node tests/check.mjs",
+    "update": "node setup/update.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.3.319",
+    "@highlightjs/cdn-assets": "11.12.0",
+    "katex": "^0.19.1"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.56.1"
+  },
+  "license": "SEE LICENSE IN LICENSE"
+}
