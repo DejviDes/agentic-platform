@@ -2,6 +2,11 @@
 
 Every release has its own version (a `vX.Y.Z` tag in the repository). Update with `npm run update`, which downloads only the changes and shows you what is new. Y goes up with new features, Z with fixes.
 
+## 0.2.5 (2026-11-28)
+
+- Windows: the agent guards also recognize Windows paths (C:\…) in file searches, so City secrets stay protected there too.
+- The automatic checks pass on Windows (tests no longer expect Unix file permissions).
+
 ## 0.2.4 (2026-11-28)
 
 - Automatic checks on Linux, Windows and macOS for every release, with a status badge in the README.

@@ -101,7 +101,7 @@ assert.equal(fs.readdirSync(root).sort().join(','), 'data,data-backup-2026-11-27
 assert.equal(fs.readFileSync(path.join(root, 'data-backup-2026-11-27/konverzacie.json'), 'utf8'), before, 'the backup is the original data/');
 assert.ok(fs.existsSync(path.join(root, 'svet.json')), 'svet.json stays');
 assert.equal(fs.readdirSync(path.join(root, 'data')).sort().join(','), 'attachments,conversations.json,devices.json,house.json,images,messages,permissions.json,postman.json,restart.json,scribe.jsonl,server.log,sleep.json,test-key');
-assert.equal(fs.statSync(path.join(root, 'data/test-key')).mode & 0o777, 0o600, 'file modes stay');
+if (process.platform !== 'win32') assert.equal(fs.statSync(path.join(root, 'data/test-key')).mode & 0o777, 0o600, 'file modes stay'); // Windows has no Unix file modes
 
 const w = read(root, 'world.json');
 assert.deepEqual(Object.keys(w.buildings), ['skola', 'klient', 'projekty'], 'building ids stay');

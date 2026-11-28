@@ -271,8 +271,8 @@ function globRegex(g) { // ripgrep glob (**, *, ?, {a,b}, [..]) → RegExp over 
   return new RegExp('^' + r + '$', 'i');
 }
 function globHitsSecret(base, g, T) { // can a glob (Grep glob, Glob pattern) select a secret file? A negative exception (!…) is ignored.
-  g = String(g || '').trim(); if (!g || g.startsWith('!')) return false;
-  let re; try { re = globRegex(low(g.startsWith('/') ? path.posix.normalize(g) : g.includes('/') ? path.posix.normalize(low(base) + '/' + g) : low(base) + '/**/' + g)); } catch { return true; }
+  g = fwd(String(g || '').trim()); if (!g || g.startsWith('!')) return false;
+  let re; try { re = globRegex(low(g.startsWith('/') || /^[a-z]:\//i.test(g) ? path.posix.normalize(g) : g.includes('/') ? path.posix.normalize(low(base) + '/' + g) : low(base) + '/**/' + g)); } catch { return true; }
   const probes = [...T.files, ...T.backup.flatMap((b) => SECRET_FILES.map((f) => b + '/' + f)), ...T.dirs.flatMap((d) => [d, d + '/notion-token', d + '/x', d + '/brana/x', d + '/brana/leaf.key', d + '/brana/ca.key', d + '/brana/vapid.json'])];
   return probes.some((s) => re.test(s));
 }

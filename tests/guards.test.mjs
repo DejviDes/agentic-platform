@@ -1,6 +1,9 @@
 // tests/guards.test.mjs – unit test of the agents.js guards (2026-11-23): reading City secrets without a card (Read, Grep, Glob, Bash)
 // and the "Always allow" rule key for Bash (interpreters, subcommands, inline code, compound commands). No Claude, no network, nothing is written.
-import assert from 'node:assert/strict';
+import strict from 'node:assert/strict';
+// every failed check is collected and listed at the end (one CI run shows all of them, e.g. on Windows)
+const failures = [];
+const assert = new Proxy(strict, { get: (t, k) => (typeof t[k] === 'function' ? (...a) => { try { return t[k](...a); } catch (e) { failures.push(String(e.message).split('\n')[0]); } } : t[k]) });
 import os from 'node:os';
 import path from 'node:path';
 import { existsSync } from 'node:fs';
@@ -146,4 +149,5 @@ assert.equal(K('npx playwright test'), 'Bash:npx playwright');
 assert.equal(K('npx -y evil'), null);
 assert.equal(K('npx'), null);
 
+if (failures.length) { console.error(`guards: ${failures.length} failed\n` + failures.map((f) => '  ' + f).join('\n')); process.exit(1); }
 console.log('guards: OK');
