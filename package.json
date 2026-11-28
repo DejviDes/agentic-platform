@@ -1,6 +1,6 @@
 {
   "name": "agentic-platform",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Your projects as a 3D city. A building = a group of projects, a floor = a folder, on each floor a team of Claude Code agents. Runs locally on your Claude subscription.",
   "type": "module",
   "scripts": {

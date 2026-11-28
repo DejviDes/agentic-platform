@@ -32,6 +32,8 @@ import { fileURLToPath } from 'node:url';
 import { IS_MAC } from './platform.js';
 
 const HOME = os.homedir();
+// Windows paths use \, the guards compare with / (identity on macOS and Linux)
+const fwd = (p) => (path.sep === '\\' ? String(p).replace(/\\/g, '/') : String(p));
 // The user's name is `user.name` in world.json. Texts for agents and cards never inflect it: "the user" or "the user (Name)".
 export const who = () => userLabel(settingWorld().user?.name);
 const Who = () => { const x = who(); return x[0].toUpperCase() + x.slice(1); };
@@ -146,15 +148,13 @@ const BAN_PROTECTED = () => tl('prompt.ban.protected');
 const CITY = path.dirname(path.dirname(fileURLToPath(import.meta.url))).normalize('NFC');
 // launchd service: the user's instance label ends in mesto-agentov, the product's in agentic-platform
 const SERVICE_NAME = /mesto-agentov|agentic-platform/;
-const PLIST_RE = new RegExp('^' + path.join(HOME, 'Library', 'LaunchAgents').replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '/(?:[\\w-]+\\.)*(?:mesto-agentov|agentic-platform)\\.plist$');
+const PLIST_RE = new RegExp('^' + fwd(path.join(HOME, 'Library', 'LaunchAgents')).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '/(?:[\\w-]+\\.)*(?:mesto-agentov|agentic-platform)\\.plist$');
 // data/ plus the migration copies next to it (data-backup-<date>/, older data-zaloha-<date>/, data.migrating/ while migrating)
 const DATA_DIR_RE = /^data(?:-(?:backup|zaloha)[^/]*|\.migrating[^/]*)?(?:\/|$)/;
 // Approval API the agent never calls (only the user by clicking). Both shapes are guarded during the transition:
 // the English routes (current code) and the original Slovak ones (older floors, agents and notes still know them).
 const CLICK_API = /\/api\/(?:control-center\/(?:commit|push)|permission|card|claude-app|new-session|rules|sorting\/(?:proposal|exceptions|approve|is)|inbox|house\/(?:diary|toggle|run)|mail\/(?:answer|toggle|run|pass\/(?:action|resolve|collect|explain))|library\/(?:rating|toggle|run)|garden\/uncheck|playground\/(?:write|toggle|run)|tasks\/(?:change|new|names|restore|toggle|run)|dispatch\/(?:run|prepare|cancel|card)|brain\/answer|chronicler\/(?:toggle|run)|scribe)\b/;
 const CLICK_API_LEGACY = /\/api\/(?:centrala\/(?:commit|push)|povolenie|karta|claude-appka|nova-session|pravidla|triedenie\/(?:navrh|vynimky|schval|is)|inbox|dom\/(?:dennik|prepni|spusti)|posta\/(?:odpoved|prepni|spusti|pas\/(?:akcia|vybav|zber|vysvetli))|kniznica\/(?:hodnotenie|prepni|spusti)|zahrada\/odskrtni|ihrisko\/(?:zapis|prepni|spusti)|ulohy\/(?:zmen|nova|nazvy|obnov|prepni|spusti)|dispecing\/(?:spusti|priprav|zrus|karta)|mozog\/odpoved|kronikar\/(?:prepni|spusti)|zapisovac)\b/;
-// Windows paths use \, the guards compare with / (identity on macOS and Linux)
-const fwd = (p) => (path.sep === '\\' ? String(p).replace(/\\/g, '/') : String(p));
 const inCity = (a) => a === fwd(CITY) || a.startsWith(fwd(CITY) + '/');
 const BAN_DATA = () => tl('prompt.ban.data');
 const BAN_NODE = () => tl('prompt.ban.node');
@@ -187,14 +187,14 @@ export function guardBash(command, cwd = CITY) {
   if (/\blaunchctl\b/.test(c) && SERVICE_NAME.test(c)) return BAN_SERVER();
   if (/\b(?:kill|pkill|killall)\b/.test(c) && (/\b4747\b/.test(c) || /\b(?:node|server\.js|watchdog\.js|strazca\.js|city-agents)\b/.test(c) || new RegExp(`\\b${process.pid}\\b`).test(c))) return BAN_SERVER();
   const dirs = foldersCommand(c, cwd || CITY);
-  if (!(dirs.some((d) => inCity(String(d).normalize('NFC'))) || c.includes(CITY) || SERVICE_NAME.test(c))) return null;
+  if (!(dirs.some((d) => inCity(fwd(d).normalize('NFC'))) || fwd(c).includes(fwd(CITY)) || SERVICE_NAME.test(c))) return null;
   // in the City folder
   if (/(?:^|[;&|(`\n]|\$\(|\b(?:sudo|xargs|exec|nohup|command)\s|\btimeout\s+\S+\s)\s*(?:kill|pkill|killall|launchctl)\b/.test(c)) return BAN_SERVER();
   if (/(?:^|[;&|(`\n]|\$\()\s*(?:\w+=\S*\s+)*npm\s+(?:run\s+)?start\b/.test(c)) return BAN_SERVER();
   for (const m of c.matchAll(/\bnode((?:\s+-[^\s;&|]+)*)\s+("[^"]*"|'[^']*'|[^\s;&|]+)([^;&|\n]*)/g)) {
     if (/(?:^|\s)(?:--check|-c)(?:\s|$)/.test(m[1])) continue; // node --check server.js only checks syntax
     // only the self-test may run (--selftest; --skuska is the old name the running server's restart tool still uses)
-    if (/^(?:.*\/)?(?:server|strazca|watchdog)\.js$/.test(withoutQuotes(m[2])) && !/--(?:selftest|skuska)\b/.test(m[3])) return BAN_SERVER();
+    if (/^(?:.*\/)?(?:server|strazca|watchdog)\.js$/.test(fwd(withoutQuotes(m[2]))) && !/--(?:selftest|skuska)\b/.test(m[3])) return BAN_SERVER();
   }
   let update = cwd || CITY;
   for (const piece of c.split(/&&|\|\||[;|\n]/)) {
@@ -291,7 +291,7 @@ export function guardReading(nastroj, i, cwd) {
 }
 // Bash: a command that mentions secret paths (path with ~ or $HOME, cd into a secret folder, bare file name in data/)
 function secretInCommand(c, cwd) {
-  const clean = String(c).normalize('NFC').replace(/["'\\]/g, '').replace(/\$\{?HOME\}?/g, HOME).replace(/(^|[\s=:])~(?=\/|\s|$)/g, '$1' + HOME).toLowerCase();
+  const clean = fwd(c).normalize('NFC').replace(/["'\\]/g, '').replace(/\$\{?HOME\}?/g, fwd(HOME)).replace(/(^|[\s=:])~(?=\/|\s|$)/g, '$1' + fwd(HOME)).toLowerCase();
   // data/<secret> and the same in data-backup-*/ (new and original names); a glob that may hit one (data/z*, data/d*, data/l*, data/t*, data/k*)
   if (/(?:^|[\s/=:])\.config\/(?:mesto|agentic)|(?:^|[\s/=:])\.(?:mesto-agentov|agentic-platform)(?:\/|\s|$)|\/notion-token(?![\w-])|(?:^|[\s/])data(?:-[\w.-]*|\.migrating[\w.-]*)?\/(?:devices\.json|lock\.json|test-key|zariadenia\.json|zamok\.json|kluc-skusky)(?![\w.-])|(?:^|[\s/])data(?:-[\w.-]*|\.migrating[\w.-]*)?\/[zkdlt][\w.-]*[*?[]|(?:^|[\s/])data-[\w.-]*[*?[]/.test(clean)) return BAN_SECRET();
   const T = secret();

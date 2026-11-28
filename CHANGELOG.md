@@ -2,6 +2,10 @@
 
 Every release has its own version (a `vX.Y.Z` tag in the repository). Update with `npm run update`, which downloads only the changes and shows you what is new. Y goes up with new features, Z with fixes.
 
+## 0.2.6 (2026-11-28)
+
+- Windows: the agent guards also recognize Windows paths in terminal commands, so agents cannot write into the app data, start or stop the server, or read City secrets there either.
+
 ## 0.2.5 (2026-11-28)
 
 - Windows: the agent guards also recognize Windows paths (C:\…) in file searches, so City secrets stay protected there too.
