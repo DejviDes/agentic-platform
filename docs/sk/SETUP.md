@@ -2,7 +2,7 @@
 
 [English](../SETUP.md) · **Slovenčina**
 
-Tento súbor je pre AI asistenta (Claude Code alebo inú AI v tomto priečinku), ktorý používateľa prevádza nastavením. Človek si ho môže prečítať tiež, ale bežne iba povie „nastav mi Mesto“. Anglický originál je `docs/SETUP.md`; pri rozdiele platí ten.
+Tento súbor je pre AI asistenta (Claude Code alebo inú AI v tomto priečinku), ktorý používateľa prevádza nastavením. Človek si ho môže prečítať tiež, ale bežne iba povie „nastav platformu“ (alebo „nastav mi Mesto“). Anglický originál je `docs/SETUP.md`; pri rozdiele platí ten.
 
 ## Ako viesť rozhovor
 
@@ -76,7 +76,7 @@ Opýtaj sa: **„Máš svoje poznámky? Kde?“** a podľa odpovede:
 
 | Odpoveď | Čo nastaviť |
 |---|---|
-| **Obsidian** | Ponúkni trezory z kontroly (`obsidian`). `brain: { "title": "Mozog", "path": "<trezor>", "kind": "obsidian" }`. Agenti píšu markdown s odkazmi `[[…]]`. |
+| **Obsidian** | Ponúkni trezory z kontroly (`obsidian`: z nastavení Obsidianu a priečinky s podpriečinkom `.obsidian` na bežných miestach). Keď je zoznam prázdny, opýtaj sa používateľa na cestu k trezoru; trezor je každý priečinok s podpriečinkom `.obsidian`. `brain: { "title": "Mozog", "path": "<trezor>", "kind": "obsidian" }`. Agenti píšu markdown s odkazmi `[[…]]`. |
 | **Priečinok s markdown súbormi** (Logseq, iA Writer, Bear export, VS Code…) | `brain: { "title": "Mozog", "path": "<priečinok>", "kind": "folder" }`. |
 | **Notion, Apple Poznámky, OneNote alebo iná appka v cloude** | Mesto ich lokálne nečíta. Ponúkni dve možnosti: bez Mozgu (`brain` vynechaj, poznámky ostanú v priečinkoch projektov), alebo založiť jednoduchý priečinok `~/Poznamky` ako nový Mozog. Notion sa dá agentom pripojiť cez Notion MCP, to je mimo nastavenia Mesta. |
 | **Nemám** | Navrhni bez Mozgu. Poznámky a rozhodnutia potom agenti navrhujú do priečinka projektu (`"notes": "folder"` pri každej budove). Ak chce, založ `~/Poznamky`. |
@@ -127,7 +127,7 @@ Ponúkaj po jednom, iba ak dávajú zmysel pre jeho systém.
 |---|---|---|
 | **Služba na pozadí** (server sa spustí po prihlásení a reštartuje sa sám) | macOS | `bash launchd/install.sh` (vyplní šablónu, službu nespúšťa, vypíše príkazy na zapnutie) |
 | **Diktovanie** (mikrofón v poli správy, prepis lokálne cez Whisper na čipe Apple) | macOS s čipom Apple | `uv` a `ffmpeg`; model sa pri prvom použití stiahne (asi 1,5 GB) |
-| **Kontrola appky** `npm run check` (iba ak bude Mesto upravovať) | všetky | `npx playwright install chromium` (asi 150 MB) |
+| **Kontrola appky** `npm run check` (iba ak bude Mesto upravovať) | všetky | `npx playwright install chromium` (asi 150 MB). Kontrola otvára appku v Chromiu, preto potrebuje **bežiaci server**: spusti ju až po kroku 11 (`npm start`), na inom porte `npm run check -- http://localhost:5050`. |
 | **Domov, Pošta, Mobil** | | v príprave, `modules` nechaj `false` |
 
 Na Linuxe a Windowse ponúkni službu podľa časti „Linux a Windows“ nižšie.
@@ -191,7 +191,7 @@ Register-ScheduledTask -TaskName "AgenticPlatform" -Action $a -Trigger $t -Descr
 3. Over bez servera: `node server/build-world.js` vypíše budovy a poschodia. Ak je budova prázdna, oprav `root`.
 4. `npm install` (ak ešte neprebehol).
 5. Spustenie: so službou podľa kroku 10, inak `npm start` na pozadí (aby si mohol pokračovať v rozhovore) alebo nech si ho človek spustí vo vlastnom termináli. Iný port: `PORT=5050 npm start`.
-6. Povedz mu, nech otvorí **http://localhost:4747**.
+6. Povedz mu, nech otvorí **http://localhost:4747**, alebo port, s ktorým server spustil (`PORT=5050 npm start` → **http://localhost:5050**).
 
 ## 12. Prvé kroky (krátka prehliadka)
 

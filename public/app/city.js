@@ -12,7 +12,7 @@ import { envTex, cameraSky, buildSurroundings, GLASS_OPACITY, PILLAR, glowTex } 
 import { M } from './modules.js';
 import { PLACES } from './floor.js';
 import { enterFloor } from './navigation.js';
-import { CONTROL_CENTER, controlCenterBadge, titleControlCenter } from './control-center.js';
+import { CONTROL_CENTER, controlCenterBadge, titleControlCenter, floorLabel } from './control-center.js';
 import { ico } from './icons.js';
 import { t as _t, tn as _tn } from './i18n.js';
 
@@ -276,8 +276,8 @@ export function buildCity() {
       const [alarmEl, alarmObj] = css2d('', 'alarmBadge'); alarmObj.position.set(WIDTH / 2 + 0.2, HEIGHT / 2 + 0.1, DEPTH / 2); alarmObj.visible = false; g.add(alarmObj);
       alarmEl.onclick = () => enterFloor(p.n);
       // name ladder: HTML label to the left of the floor, shown at all floors of the tower when the mouse is over any of them
-      const [rebEl, rebObj] = css2d(`<span class="point"></span>${esc(p.n)}`, 'rebBadge'); rebObj.position.set(-WIDTH / 2 - 0.15, HEIGHT / 2 + 0.1, DEPTH / 2); rebObj.visible = false; g.add(rebObj);
-      const badge =new THREE.Mesh(new THREE.PlaneGeometry(1.9, 0.48), new THREE.MeshBasicMaterial({ map: texture(p.sessions ? `${p.n} · ${p.sessions}` : p.n, { bg: '#fff', fg: '#151515', font: skin.fontBadge, r: 8 }), transparent: true, depthWrite: false }));
+      const [rebEl, rebObj] = css2d(`<span class="point"></span>${esc(floorLabel(p.n))}`, 'rebBadge'); rebObj.position.set(-WIDTH / 2 - 0.15, HEIGHT / 2 + 0.1, DEPTH / 2); rebObj.visible = false; g.add(rebObj);
+      const badge =new THREE.Mesh(new THREE.PlaneGeometry(1.9, 0.48), new THREE.MeshBasicMaterial({ map: texture(p.sessions ? `${floorLabel(p.n)} · ${p.sessions}` : floorLabel(p.n), { bg: '#fff', fg: '#151515', font: skin.fontBadge, r: 8 }), transparent: true, depthWrite: false }));
       badge.position.set(-WIDTH / 2 + 1.5, HEIGHT - 0.4, DEPTH / 2 + 0.02); g.add(badge);
       const hit = new THREE.Mesh(new THREE.BoxGeometry(WIDTH, HEIGHT, DEPTH), new THREE.MeshBasicMaterial({ visible: false })); hit.position.y = HEIGHT / 2; hit.userData.id = p.n; g.add(hit); click.push(hit);
       floors.set(p.n, { g, p, glass: glassM, hr: hrM, figures, slideOut: 0, target: 0, building: b.title, alarm, workO, alarmEl, alarmObj, alarmText: '', rebEl, rebObj, rebStatus: '' });

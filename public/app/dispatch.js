@@ -16,6 +16,7 @@ import { convState, hasHomeChat, openConv } from './conversations.js';
 import { ico, agentIcon } from './icons.js';
 import { M } from './modules.js';
 import { t as tr, tn } from './i18n.js';
+import { floorLabel } from './control-center.js';
 
 export const DISPATCH_ID = 'control-center/dispatch';
 export const DISPATCH_NAME = 'Dispečing'; // floor name in WORLD (source.js)
@@ -69,7 +70,7 @@ function menuFloors(kt, x) {
   const category = catalog(), grp = new Map();
   for (const p of category) { if (!grp.has(p.building)) grp.set(p.building, { color: p.color, p: [] }); grp.get(p.building).p.push(p); }
   let h = '';
-  for (const [b, s] of grp) h += `<div class="sk"><span class="point" style="background:${esc(s.color)}"></span>${esc(b)}</div>` + s.p.map((p) => `<div class="po ${p.id === x.floor ? 'on' : ''}" data-dk="choiceP" data-kt="${esc(kt)}" data-ku="${esc(x.id)}" data-v="${esc(p.id)}"><b>${esc(p.n)}</b></div>`).join('');
+  for (const [b, s] of grp) h += `<div class="sk"><span class="point" style="background:${esc(s.color)}"></span>${esc(b)}</div>` + s.p.map((p) => `<div class="po ${p.id === x.floor ? 'on' : ''}" data-dk="choiceP" data-kt="${esc(kt)}" data-ku="${esc(x.id)}" data-v="${esc(p.id)}"><b>${esc(floorLabel(p.n))}</b></div>`).join('');
   if (!category.some((p) => p.id === x.floor)) h += `<div class="sk">${tr('app.dispatch.other')}</div><div class="po on" data-dk="choiceP" data-kt="${esc(kt)}" data-ku="${esc(x.id)}" data-v="${esc(x.floor)}"><b>${esc(floorName(x))}</b></div>`;
   return h;
 }

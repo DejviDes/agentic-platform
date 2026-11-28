@@ -9,6 +9,7 @@ import { convState, hasHomeChat, openConv, homeFloorP } from './conversations.js
 import { openWorkroom, closeWorkroom } from './workroom.js';
 import { ico } from './icons.js';
 import { M } from './modules.js';
+import { floorLabel } from './control-center.js';
 import { t as tr } from './i18n.js'; // alias: in build() `t` is an array of searched words
 
 const P = { on: false, q: '', pol: [], course: 0, el: null, vst: null, items: null, ago: null };
@@ -22,7 +23,7 @@ function floorFlat() {
 }
 const houseK = (pid) => (String(pid || '').startsWith('home/') ? pid.slice(5) : null); // virtual floor of a Home building (the building's chat, 2026-11-18)
 const isHouseChat = (pid) => hasHomeChat(houseK(pid));
-const floorName = (pid) => { for (const b of BUILDINGS) for (const p of b.floors) if (p.id === pid) return p.n; const k = houseK(pid); if (k) return tr('app.palette.home') + ' · ' + (HOME_BUILDINGS.find((b) => b.k === k)?.title || k); return pid || ''; };
+const floorName = (pid) => { for (const b of BUILDINGS) for (const p of b.floors) if (p.id === pid) return floorLabel(p.n); const k = houseK(pid); if (k) return tr('app.palette.home') + ' · ' + (HOME_BUILDINGS.find((b) => b.k === k)?.title || k); return pid || ''; };
 export const openConvWhere = (k) => (isHouseChat(k.floor) ? M.home?.openHomeChat(houseK(k.floor), { id: k.id }) : goOn(floorCount(k.floor), k.id));
 
 // entering the floor and the conversation; if you are already on it, just open the thread
@@ -72,7 +73,7 @@ function build(q) {
   }
   if (t.length || !real) {
     for (const p of floorFlat()) {
-      const hay = without(`${p.n} ${p.building}`);
+      const hay = without(`${p.n} ${floorLabel(p.n)} ${p.building}`);
       if (!match(hay)) continue;
       const r = { kind: 'floor', icon: ICONS.floor, title: p.n, where: p.building, hay, ide: () => enterFloor(p.n) };
       if (match(without(p.n))) { floorR.push(r); if (real && p.id) floorR.push({ kind: 'action', icon: ICONS.action, title: tr('app.palette.newConv', { n: p.n }), where: tr('app.palette.action'), ide: () => goOn(p.n, null, true) }); }

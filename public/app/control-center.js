@@ -20,6 +20,8 @@ export const CONTROL_CENTER = {
   status: null, error: '', ver: 0, // state = response of /api/control-center
   expand: false, diff: null, commit: false, msg: '', outside: new Set(), running: false, push: false, // bar UI (outside = files unchecked from the commit)
 };
+// The floor id of the center stays 'Riadiaca centrála' (a key on the server and in data/), only its displayed name is translated.
+export const floorLabel = (n) => (n && n === CONTROL_CENTER.n ? tr('app.city.controlCenterFull') : n || '');
 export const isControlCenter = (n) => n === CONTROL_CENTER.n || (!isReal() && !!n && n === DEMO_CONTROL_CENTER_NAME()); // demo in English: 'Control center' (demo-data.js)
 const onControlCenter = () => active?.kind === 'floor' && isControlCenter(active.n);
 

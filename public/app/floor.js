@@ -9,7 +9,7 @@ import { simTime, dayState } from './daylight.js';
 import { WORLD } from './world.js';
 import { animate, box, interiorLights, mat, mouse, figure, ray, renderer, skin, texture } from './scene-base.js';
 import { selectAgent } from './panel.js';
-import { CONTROL_CENTER } from './control-center.js';
+import { CONTROL_CENTER, floorLabel } from './control-center.js';
 
 // =====================================================================
 // SCENE 2: FLOOR v4 – a compact, furnished office (draws from the shared WORLD)
@@ -224,7 +224,7 @@ export function buildFloor(n) {
   { const l = new THREE.PointLight(0xffcf90, 0, 5, 1.6); l.position.set(6.75, 1.6, 0.85); g.add(l); sv._standing = l; } // standing lamp by the sofa
   plant(g, 6.6, -0.5, 1.35); plant(g, -6.7, 4.0, 1.1); plant(g, -3.2, 3.9, 0.9); plant(g, 4.0, 4.0, 0.8); plant(g, -3.25, -0.9, 0.7);
   // inscription on the floor
-  const nap = new THREE.Mesh(new THREE.PlaneGeometry(6.4, 0.8), new THREE.MeshBasicMaterial({ map: texture(`${def.n} · ${def.description}`.toUpperCase(), { fg: '#cfcac0', font: '500 54px "JetBrains Mono"', w: 1024, h: 128 }), transparent: true, depthWrite: false }));
+  const nap = new THREE.Mesh(new THREE.PlaneGeometry(6.4, 0.8), new THREE.MeshBasicMaterial({ map: texture(`${floorLabel(def.n)} · ${def.description}`.toUpperCase(), { fg: '#cfcac0', font: '500 54px "JetBrains Mono"', w: 1024, h: 128 }), transparent: true, depthWrite: false }));
   nap.rotation.x = -Math.PI / 2; nap.position.set(0.8, 0.012, 3.55); g.add(nap);
   // robot vacuum
   const robot = new THREE.Group(); const rt = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.08, 24), mat(0x2a2c33)); rt.position.y = 0.05; rt.castShadow = true; robot.add(rt);

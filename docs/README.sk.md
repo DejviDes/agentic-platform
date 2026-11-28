@@ -60,7 +60,7 @@ cd agentic-platform
 claude
 ```
 
-A napíš: **„nastav mi Mesto“**. AI ťa prevedie krátkym rozhovorom (asi 10 otázok): ktoré priečinky sú budovy, či máš poznámky a kde, aký vzhľad, čo zapnúť. Na konci Mesto spustí a ukáže ti, ako sa ovláda. Postup, podľa ktorého ide, je v [docs/sk/SETUP.md](sk/SETUP.md).
+A napíš: **„nastav platformu“** (funguje aj „nastav mi Mesto“ alebo po anglicky „set up the platform“). AI ťa prevedie krátkym rozhovorom (asi 10 otázok): ktoré priečinky sú budovy, či máš poznámky a kde, aký vzhľad, čo zapnúť. Na konci Mesto spustí a ukáže ti, ako sa ovláda. Postup, podľa ktorého ide, je v [docs/sk/SETUP.md](sk/SETUP.md).
 
 ### Ručne
 
@@ -72,7 +72,7 @@ npm start                          # http://localhost:4747
 
 ## Aktualizácia
 
-Nové verzie vychádzajú zhruba raz týždenne (zoznam je v [CHANGELOG.md](CHANGELOG.md), po anglicky).
+Nové verzie vychádzajú zhruba raz týždenne (zoznam je v [CHANGELOG.md](../CHANGELOG.md), po anglicky).
 
 ```bash
 npm run update -- --verify   # čo je nové (nič nemení)

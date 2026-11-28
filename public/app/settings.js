@@ -71,6 +71,15 @@ async function chooseScribe(v) {
   const r = await fetch('/api/scribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled: v }) }).catch(() => null);
   if (r?.ok) scribe = v; else toast(t('app.settings.errorSave'));
 }
+// phone push for long waiting (escalation.js, /api/escalation): switch, limit and a test push
+let escalation = null;
+async function loadEscalation() { try { const r = await fetch('/api/escalation', { cache: 'no-store' }); if (r.ok) { escalation = await r.json(); drawControls(); } } catch {} }
+async function sendEscalation(o, path = '') {
+  const r = await fetch('/api/escalation' + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(o) }).catch(() => null);
+  const d = r ? await r.json().catch(() => ({})) : {};
+  if (r?.ok) { if (!path) escalation = d; return true; }
+  toast(d.error || t('app.settings.errorSave')); return false;
+}
 const SETTINGS = [
   { category: 'appearance', nm: 'language', pick: { options: ['en', 'sk'], read: () => language(), write: changeLanguage } },
   { category: 'appearance', nm: 'font',  element: 'fontBtn', prep: true },
@@ -86,6 +95,12 @@ const SETTINGS = [
     toggle: { read: () => interimTitle ?? true, write: (v) => chooseNames(v) } },
   { category: 'chat', nm: 'scribe', 
     toggle: { read: () => scribe ?? true, write: (v) => chooseScribe(v) } },
+  { category: 'alerts', mobile: true, nm: 'escalation',
+    toggle: { read: () => escalation?.enabled ?? false, write: (v) => sendEscalation({ enabled: v }) } },
+  { category: 'alerts', mobile: true, nm: 'escalationLimit',
+    pick: { options: ['15', '30', '60', '120'], read: () => (escalation ? String(escalation.limitMin) : null), write: (v) => sendEscalation({ limitMin: Number(v) }) } },
+  { category: 'alerts', mobile: true, nm: 'escalationTest',
+    action: { label: 'app.settings.escalation.test', click: async () => { if (await sendEscalation({}, '/test')) toast(t('app.settings.escalation.sent')); } } },
   { category: 'alerts', nm: 'bell', 
     pick: { options: ['enabled', 'silent', 'quiet', 'disabled'], read: () => alertState(), write: (v) => chooseAlerts(v) } },
   { category: 'mac', nm: 'sleep',
@@ -111,7 +126,7 @@ const titleN = (n) => t(`app.settings.n.${n.nm}.title`), descriptionN = (n) => t
 const controlHtml = (n) => {
   if (n.pick) { const v = n.pick.read(); return `<div class="nsSelect" role="group">${n.pick.options.map((h) => `<button class="${h === v ? 'on' : ''}" data-nsv="${esc(h)}" aria-pressed="${h === v}">${esc(t(`app.settings.v.${n.nm}.${h}`))}</button>`).join('')}</div>`; }
   if (n.toggle) { const on = !!n.toggle.read(); return `<button class="nmS nsPrep ${on ? 'on' : ''}" data-nsp role="switch" aria-checked="${on}">${on ? t('app.settings.on') : t('app.settings.off')}</button>`; }
-  if (n.action) return `<button class="btn" data-nsa>${esc(t('app.settings.open'))}</button>`;
+  if (n.action) return `<button class="btn" data-nsa>${esc(t(n.action.label || 'app.settings.open'))}</button>`;
   return '';
 };
 function drawControl(n) { const o = document.querySelector(`#nsWindow .nsR[data-nm="${n.nm}"] .nsOv`); if (o) o.innerHTML = controlHtml(n); }
@@ -125,6 +140,7 @@ function buildWindow() {
   document.body.append(el);
   for (const n of SETTINGS) {
     if (!categories().some(([k]) => k === n.category)) continue; // row of a disabled module
+    if (n.mobile && !SOURCE.modules.mobile) continue; // needs the phone (push), hidden without the mobile module
     const r = document.createElement('div'); r.className = 'nsR'; r.dataset.nm = n.nm;
     r.innerHTML = `<div class="nsTx"><div class="nsN">${esc(titleN(n))}</div><div class="nsP">${esc(n.nm === 'sleep' ? SLEEP_DESCRIPTION() : descriptionN(n))}</div></div><div class="nsOv">${controlHtml(n)}</div>`;
     const p = n.element && $(n.element);
@@ -201,7 +217,7 @@ function showCategory(k) {
   if (k === 'scheduled') showScheduled();
 }
 export function openSettings(category) {
-  close(); $('nsWindow').classList.add('on'); showCategory(category || readLS(CATEGORY_KEY)); drawControls(); loadSaving(); loadNames(); loadScribe(); loadSleep();
+  close(); $('nsWindow').classList.add('on'); showCategory(category || readLS(CATEGORY_KEY)); drawControls(); loadSaving(); loadNames(); loadScribe(); loadSleep(); loadEscalation();
 }
 export function closeWindow() { $('nsWindow')?.classList.remove('on'); }
 

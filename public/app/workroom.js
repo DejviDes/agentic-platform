@@ -21,6 +21,7 @@ import { CONTROL_CENTER_C, HOME_C, BRAIN_C } from './layers-kit.js';
 import { ico } from './icons.js';
 import { M } from './modules.js';
 import { locale, t as tr, tn } from './i18n.js';
+import { floorLabel } from './control-center.js';
 
 const KEY = { mode: 'city-workroom', pack: 'city-workroom-pack', status: 'city-workroom-status19', conv: 'city-workroom-conv', map: 'city-workroom-without-map', today: 'city-workroom-without-today' };
 const read = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
@@ -89,7 +90,7 @@ function build() {
     const I = M.get(k.floor);
     if (P.building !== 'all' && I.key !== P.building) return false;
     if (P.po && k.floor !== P.po) return false;
-    if (t.length) { const h = without(`${k.title} ${I.building} ${I.n} ${agentName(k, I)}`); if (!t.every((w) => h.includes(w))) return false; }
+    if (t.length) { const h = without(`${k.title} ${floorLabel(I.building)} ${floorLabel(I.n)} ${agentName(k, I)}`); if (!t.every((w) => h.includes(w))) return false; }
     return true;
   };
   const note = (a, b) => (b.changed || 0) - (a.changed || 0);
@@ -111,8 +112,8 @@ const short = (n) => String(n || '').replace(/\s*\(.*?\)\s*/g, ' ').trim(); // "
 function row(k, D) {
   const I = D.M.get(k.floor), update = k.demo ? P.demoOpen === k.id && active?.kind === 'floor' && active.n === k.n : !!chatP() && convState.open === k.id;
   const running = k.status === 'running' || D.children.has(k.id), point = isPending(k) ? 'pending' : running ? 'work' : k.status === 'error' ? 'error' : '';
-  const ag = agentName(k, I), lead = k.agent === 'lead', where = short(I.n) + (lead ? '' : ` · ${ag}`);
-  const path = `${I.building} › ${I.n} · ${ag}${k.parent ? ' · ' + tr('app.workroom.task') : ''}${running && k.start ? ' · ' + tr('app.workroom.running_od', { time: duration(k.start) }) : k.changed ? ` · ${when(k.changed)}` : ''}`;
+  const ag = agentName(k, I), lead = k.agent === 'lead', where = short(floorLabel(I.n)) + (lead ? '' : ` · ${ag}`);
+  const path = `${floorLabel(I.building)} › ${floorLabel(I.n)} · ${ag}${k.parent ? ' · ' + tr('app.workroom.task') : ''}${running && k.start ? ' · ' + tr('app.workroom.running_od', { time: duration(k.start) }) : k.changed ? ` · ${when(k.changed)}` : ''}`;
   // dot only while running, waiting and on error, otherwise no space is reserved for it (v19)
   let h = `<div class="pr-r ${point ? 'sb' : ''} ${isPending(k) ? 'pending' : ''} ${update ? 'update' : ''}" tabindex="0" role="button" data-pa="open" data-id="${esc(k.id)}" title="${esc(`${k.title || tr('app.workroom.without_title')}\n${path}`)}">${point ? `<span class="point ${point}"></span>` : ''}<div style="min-width:0"><div class="t">${k.pinned ? `<span class="pinZ">${ico('pin')}</span>` : ''}${esc(k.title || tr('app.workroom.without_title'))}</div>`;
   if (k.status === 'pending') {
@@ -163,17 +164,17 @@ function drawList(D) {
   $('prFilterBtn').classList.toggle('on', P.building !== 'all');
   const I = P.po && D.M.get(P.po);
   // 2026-11-19 (variant A): with a floor filter (click on the strip in the map) "＋ new chat" goes straight to the lead of that floor
-  write($('prFl'), I ? `<button class="pr-chip on" data-pa="cancelAfter" title="${tr('app.workroom.cancel_filter', { where: esc(I.building) + ' › ' + esc(I.n) })}"><span class="t">${esc(I.n)}</span> ${ico('x')}</button><button class="pr-chip create" style="--fb:${I.color}" data-pa="newHere" data-po="${esc(I.pid)}" title="${tr('app.workroom.new_t', { n: esc(I.n) })}">${tr('app.workroom.fresh')}</button>` : '');
+  write($('prFl'), I ? `<button class="pr-chip on" data-pa="cancelAfter" title="${tr('app.workroom.cancel_filter', { where: esc(floorLabel(I.building)) + ' › ' + esc(floorLabel(I.n)) })}"><span class="t">${esc(floorLabel(I.n))}</span> ${ico('x')}</button><button class="pr-chip create" style="--fb:${I.color}" data-pa="newHere" data-po="${esc(I.pid)}" title="${tr('app.workroom.new_t', { n: esc(floorLabel(I.n)) })}">${tr('app.workroom.fresh')}</button>` : '');
   // collapsed strip: what is waiting and running, then 12 recent
   const strip = [...D.pin, ...D.pending, ...D.running, ...D.ost.slice(0, MAX_RECENT)];
-  write($('prStrip'), strip.map((k) => { const J = D.M.get(k.floor), b = isPending(k) ? 'pending' : k.status === 'running' || D.children.has(k.id) ? 'work' : k.status === 'error' ? 'error' : ''; /* as in the list, done stays in the building's color (v19: .bod.hotovo is hidden), otherwise done in the orange Center looks like running */ return `<button data-pa="open" data-id="${esc(k.id)}" class="${active?.kind === 'floor' && convState.open === k.id ? 'update' : ''}" title="${esc(`${k.title || tr('app.workroom.without_title')} · ${J.building} › ${J.n}`)}"><span class="point ${b}" style="${b ? '' : `background:${J.color}`}"></span></button>`; }).join(''));
+  write($('prStrip'), strip.map((k) => { const J = D.M.get(k.floor), b = isPending(k) ? 'pending' : k.status === 'running' || D.children.has(k.id) ? 'work' : k.status === 'error' ? 'error' : ''; /* as in the list, done stays in the building's color (v19: .bod.hotovo is hidden), otherwise done in the orange Center looks like running */ return `<button data-pa="open" data-id="${esc(k.id)}" class="${active?.kind === 'floor' && convState.open === k.id ? 'update' : ''}" title="${esc(`${k.title || tr('app.workroom.without_title')} · ${floorLabel(J.building)} › ${floorLabel(J.n)}`)}"><span class="point ${b}" style="${b ? '' : `background:${J.color}`}"></span></button>`; }).join(''));
 }
 const order = () => [...(P.pack ? $('prStrip') : $('prScroll')).querySelectorAll('[data-pa="open"]')].map((e) => e.dataset.id);
 
 // ---------- city mini status ----------
 function drawStatus(D) {
   const statusP = (pid) => { const s = D.poP.get(pid); return !s ? '' : s.pending ? 'pending' : s.running ? 'work' : 'hasConv'; };
-  const pass = (I) => `<button style="--fb:${I.color}" class="pass ${statusP(I.pid)} ${P.po === I.pid ? 'fil' : ''}" data-pa="po" data-po="${esc(I.pid)}" data-t="${esc(`${I.building} › ${I.n}`)}" aria-label="${esc(`${I.building} › ${I.n}`)}"></button>`;
+  const pass = (I) => `<button style="--fb:${I.color}" class="pass ${statusP(I.pid)} ${P.po === I.pid ? 'fil' : ''}" data-pa="po" data-po="${esc(I.pid)}" data-t="${esc(`${floorLabel(I.building)} › ${floorLabel(I.n)}`)}" aria-label="${esc(`${floorLabel(I.building)} › ${floorLabel(I.n)}`)}"></button>`;
   const bld = (b, className, bldItems) => `<div class="pr-bld ${className}"><div class="bn"><i style="background:${bldItems[0]?.color || 'var(--line)'}"></i><span>${esc(b)}</span></div><div class="pr-ps">${bldItems.map(pass).join('')}</div></div>`;
   let h = '';
   for (const b of BUILDINGS) h += bld(b.title, placeMap(b), b.floors.map((p) => D.M.get(p.id || p.n)).filter(Boolean));
@@ -183,7 +184,7 @@ function drawStatus(D) {
   write($('prMapToggle'), `<span>${tr('app.workroom.city')}</span>${P.withoutMap && (nC || nB) ? `<em>${[nC ? tr('app.workroom.n_pending', { n: nC }) : '', nB ? tr('app.workroom.n_running', { n: nB }) : ''].filter(Boolean).join(' · ')}</em>` : ''}<i>${P.withoutMap ? '▸' : '▾'}</i>`);
   // v19 polish: below the map only floors that are waiting or running (nothing when quiet; the waiting/running counts are already in this row)
   const live = [...D.poP].filter(([, s]) => s.pending || s.running).sort((a, b) => b[1].pending - a[1].pending);
-  write($('prRow'), live.map(([pid, s]) => { const I = D.M.get(pid); return `<button class="${s.pending ? 'pending' : 'work'} ${P.po === pid ? 'fil' : ''}" data-pa="po" data-po="${esc(pid)}" title="${tr('app.workroom.filter_t')}">${s.pending ? ico('pending') : '●'} ${esc(I.building)} › ${esc(I.n)}</button>`; }).join(''));
+  write($('prRow'), live.map(([pid, s]) => { const I = D.M.get(pid); return `<button class="${s.pending ? 'pending' : 'work'} ${P.po === pid ? 'fil' : ''}" data-pa="po" data-po="${esc(pid)}" title="${tr('app.workroom.filter_t')}">${s.pending ? ico('pending') : '●'} ${esc(floorLabel(I.building))} › ${esc(floorLabel(I.n))}</button>`; }).join(''));
   // usage (KS.limity from /usage): two bars with percentage and reset time
   const L = CONV_STORE.limits, f = (p) => (p >= 90 ? 'err' : p >= 75 ? 'w' : ''), reset = (ms) => { const z = ms - Date.now(); return !ms ? '' : z <= 0 ? tr('app.workroom.refreshing') : z < DAY ? tr('app.workroom.reset_o', { h: Math.floor(z / 36e5), m: Math.floor(z / 6e4) % 60 }) : tr('app.workroom.reset_day', { time: new Date(ms).toLocaleString(locale(), { weekday: 'short', hour: '2-digit', minute: '2-digit' }) }); };
   // 2026-11-18: bar, percentages and reset time in plain view (not only in title), without a section heading
@@ -221,9 +222,9 @@ function draw() {
 // path in the top bar (2026-11-19: "I can't see where I am"): building dot, building › floor; click = the floor's conversation list
 function drawPath(D) {
   const C = chatP(), J = C && D.M.get(C.def.id);
-  write($('prPath'), !J ? '' : `<span class="pr-cs">›</span><button class="pr-path" data-pa="path" title="${tr('app.workroom.conv_floor', { n: esc(J.n) })}"><span class="point" style="background:${J.color}"></span>${esc(J.building)} › <b>${esc(J.n)}</b></button>`);
+  write($('prPath'), !J ? '' : `<span class="pr-cs">›</span><button class="pr-path" data-pa="path" title="${tr('app.workroom.conv_floor', { n: esc(floorLabel(J.n)) })}"><span class="point" style="background:${J.color}"></span>${esc(floorLabel(J.building))} › <b>${esc(floorLabel(J.n))}</b></button>`);
   // 2026-11-19: "City" leads to the whole city, "Back" leads to the office of the open conversation (also Esc · W)
-  write($('prBack'), !J ? '' : `<button class="pr-b" data-pa="back" title="${tr('app.workroom.back_t', { where: esc(J.building) + ' › ' + esc(J.n) })}"><svg class="ikn" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6 4 12l6 6"/><path d="M4 12h16"/></svg> ${tr('app.workroom.back')}</button>`);
+  write($('prBack'), !J ? '' : `<button class="pr-b" data-pa="back" title="${tr('app.workroom.back_t', { where: esc(floorLabel(J.building)) + ' › ' + esc(floorLabel(J.n)) })}"><svg class="ikn" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6 4 12l6 6"/><path d="M4 12h16"/></svg> ${tr('app.workroom.back')}</button>`);
 }
 function schedule() { if (!workroom || P.drawT) return; P.drawT = setTimeout(() => { P.drawT = null; draw(); }, 150); }
 function setPack(on) { P.pack = on; document.body.classList.toggle('prPack', on); save(KEY.pack, on ? '1' : '0'); $('prPackBtn').title = on ? tr('app.workroom.expand') : tr('app.workroom.collapse'); }

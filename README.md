@@ -60,7 +60,7 @@ cd agentic-platform
 claude
 ```
 
-Then type: **"set up my city"**. The AI walks you through a short conversation (about 10 questions): which folders are buildings, whether you keep notes and where, which look you want, what to turn on. At the end it starts the city and shows you how to use it. The steps it follows are in [docs/SETUP.md](docs/SETUP.md).
+Then type: **"set up the platform"** ("set up my city" works too). The AI walks you through a short conversation (about 10 questions): which folders are buildings, whether you keep notes and where, which look you want, what to turn on. At the end it starts the city and shows you how to use it. The steps it follows are in [docs/SETUP.md](docs/SETUP.md).
 
 ### By hand
 

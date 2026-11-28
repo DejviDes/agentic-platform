@@ -5,7 +5,7 @@ Thanks for your interest. Agentic Platform is a personal project shared as **sou
 ## How development works
 
 - The project is developed in a private repository. This public repository receives **one commit per release** (with a `vX.Y.Z` tag), produced by an automated release process.
-- Because of that, pull requests are **not merged directly**. If a change is accepted, it is applied in the private repository and appears in the next release, with credit in [CHANGELOG.md](CHANGELOG.md) if you want it.
+- Because of that, pull requests are **not merged directly**. If a change is accepted, it is applied in the private repository and appears in the next release, with credit in [CHANGELOG.md](../CHANGELOG.md) if you want it.
 
 ## Good ways to help
 

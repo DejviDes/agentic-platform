@@ -85,35 +85,55 @@ v.port = await new Promise((ok) => {
 // candidates for buildings: common folders with projects
 const NAMES = ['Projects', 'projects', 'Development', 'dev', 'Dev', 'Code', 'code', 'src', 'repos', 'Repos', 'git', 'GitHub', 'Work', 'work', 'Projekty', 'Praca', 'Práca', 'Skola', 'Škola', 'School', 'Studium', 'Štúdium', 'Documents/GitHub', 'Documents/Projects', 'Documents/Projekty', 'Documents/Code'];
 v.candidates = [];
+// one folder can show up under several names (~/Projects and ~/projects on a case-insensitive disk, symlinks), so compare by realpath, inode and case
+const CASELESS = OS === 'darwin' || OS === 'win32';
+const realCase = (p) => { try { return path.join(path.dirname(p), path.basename(fs.realpathSync.native(p))); } catch { return p; } }; // ~/projects typed as ~/Projects → the name as it is on disk
+const sameKey = (p) => { let r = p; try { r = fs.realpathSync.native(p); } catch {} let id = ''; try { const st = fs.statSync(p); id = `${st.dev}:${st.ino}`; } catch {} return { r: CASELESS ? r.toLowerCase() : r, id }; };
+const seen = [];
 for (const m of NAMES) {
   const p = path.join(HOME, m);
-  if (!exists(p) || v.candidates.some((k) => k.abs === fs.realpathSync(p))) continue;
+  if (!exists(p)) continue;
+  const key = sameKey(p);
+  if (seen.some((s) => s.r === key.r || (key.id && s.id === key.id))) continue;
+  seen.push(key);
   const children = subfolders(p);
   if (!children.length) continue;
   const withGit = children.filter((d) => exists(path.join(p, d, '.git'))).length;
   const withClaude = children.filter((d) => exists(path.join(p, d, 'CLAUDE.md'))).length;
-  v.candidates.push({ path: tilde(p), abs: fs.realpathSync(p), folders: children.length, withGit, withClaudeMd: withClaude, sample: children.slice(0, 8) });
+  v.candidates.push({ path: tilde(realCase(p)), folders: children.length, withGit, withClaudeMd: withClaude, sample: children.slice(0, 8) });
 }
-v.candidates.forEach((k) => delete k.abs);
 
-// notes: Obsidian vaults (the list from Obsidian's own settings)
+// notes: Obsidian vaults, from Obsidian's own settings and by folder (a folder with a .obsidian subfolder) in common places
 const obsidianSettings = [
   path.join(HOME, 'Library/Application Support/obsidian/obsidian.json'),
   path.join(HOME, '.config/obsidian/obsidian.json'),
   path.join(process.env.APPDATA || path.join(HOME, 'AppData/Roaming'), 'obsidian/obsidian.json'),
 ];
-v.obsidian = [];
+const vaultPaths = [];
 for (const f of obsidianSettings) {
-  try {
-    const j = JSON.parse(fs.readFileSync(f, 'utf8'));
-    for (const t of Object.values(j.vaults || {})) {
-      if (!t.path || !exists(t.path)) continue;
-      let notes = 0;
-      const count = (d, depth) => { if (depth > 4 || notes > 5000) return; for (const e of fs.readdirSync(d, { withFileTypes: true })) { if (e.name.startsWith('.')) continue; if (e.isDirectory()) count(path.join(d, e.name), depth + 1); else if (e.name.endsWith('.md')) notes++; } };
-      try { count(t.path, 0); } catch {}
-      v.obsidian.push({ path: tilde(t.path), notes, hasClaudeMd: exists(path.join(t.path, 'CLAUDE.md')) });
-    }
-  } catch {}
+  try { const j = JSON.parse(fs.readFileSync(f, 'utf8')); for (const t of Object.values(j.vaults || {})) if (t.path && exists(t.path)) vaultPaths.push(t.path); } catch {}
+}
+const isVault = (p) => exists(path.join(p, '.obsidian'));
+const SKIP = new Set(['node_modules', 'Library', 'AppData', 'Applications']);
+const findVaults = (dir, depth) => {
+  if (isVault(dir)) { vaultPaths.push(dir); return; }
+  if (depth <= 0) return;
+  for (const d of subfolders(dir)) if (!SKIP.has(d)) findVaults(path.join(dir, d), depth - 1);
+};
+for (const m of ['', 'Documents', 'Notes', 'notes', 'Obsidian', 'obsidian', 'Documents/Obsidian', 'Documents/Notes', 'Library/Mobile Documents/iCloud~md~obsidian/Documents', ...v.candidates.map((k) => k.path.replace(/^~\/?/, ''))]) {
+  const p = m ? path.join(HOME, m) : HOME;
+  if (exists(p)) findVaults(p, m ? 2 : 1); // depth 2 below each place; the home folder itself only one level (its subfolders are listed above)
+}
+v.obsidian = [];
+const seenVaults = [];
+for (const vp of vaultPaths) {
+  const key = sameKey(vp);
+  if (seenVaults.some((s) => s.r === key.r || (key.id && s.id === key.id))) continue;
+  seenVaults.push(key);
+  let notes = 0;
+  const count = (d, depth) => { if (depth > 4 || notes > 5000) return; for (const e of fs.readdirSync(d, { withFileTypes: true })) { if (e.name.startsWith('.')) continue; if (e.isDirectory()) count(path.join(d, e.name), depth + 1); else if (e.name.endsWith('.md')) notes++; } };
+  try { count(vp, 0); } catch {}
+  v.obsidian.push({ path: tilde(vp), notes, hasClaudeMd: exists(path.join(vp, 'CLAUDE.md')) });
 }
 
 // Claude Code sessions (the city computes floor activity from them)
@@ -122,6 +142,7 @@ try { v.sessions = subfolders(path.join(HOME, '.claude/projects')).length; } cat
 // ---------- output ----------
 if (JSONV) { console.log(JSON.stringify(v, null, 2)); process.exit(0); }
 const ok = (b) => (b ? '✓' : '✗');
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 console.log(`Agentic Platform – environment check (${tilde(APP)})\n`);
 console.log(`${v.system.tested ? '✓' : '·'} System: ${v.system.title} (kernel ${v.system.kernel}, ${v.system.arch})${v.system.tested ? '' : '  → runs, but Touch ID, system notifications, Mac sleep and dictation are off (docs/SETUP.md, "Linux and Windows")'}`);
 console.log(`${ok(v.node.ok)} Node ${v.node.version}${v.node.ok ? '' : '  → version 22 or newer is needed'}`);
@@ -137,6 +158,6 @@ if (v.windows) console.log(`· Windows: Task Scheduler task ${v.windows.task ? '
 if (v.mac) console.log(`· macOS: Xcode tools ${ok(v.mac.xcodeTools)}, uv ${ok(v.mac.uv)}, ffmpeg ${ok(v.mac.ffmpeg)}, service ${v.mac.service ? 'installed' : 'no'}`);
 console.log(`\nCandidates for buildings:`);
 if (!v.candidates.length) console.log('  (no common project folders found, tell me where yours are)');
-for (const k of v.candidates) console.log(`  ${k.path}  ${k.folders} folders (${k.withGit} with git, ${k.withClaudeMd} with CLAUDE.md), e.g. ${k.sample.slice(0, 4).join(', ')}`);
-console.log(`\nObsidian vaults: ${v.obsidian.length ? v.obsidian.map((t) => `${t.path} (${t.notes} notes${t.hasClaudeMd ? ', has CLAUDE.md' : ''})`).join(', ') : 'none'}`);
-console.log(`Claude Code sessions: ${v.sessions} project folders`);
+for (const k of v.candidates) console.log(`  ${k.path}  ${plural(k.folders, 'folder', 'folders')} (${k.withGit} with git, ${k.withClaudeMd} with CLAUDE.md), e.g. ${k.sample.slice(0, 4).join(', ')}`);
+console.log(`\nObsidian vaults: ${v.obsidian.length ? v.obsidian.map((t) => `${t.path} (${plural(t.notes, 'note', 'notes')}${t.hasClaudeMd ? ', has CLAUDE.md' : ''})`).join(', ') : 'none found (tell me where your notes are)'}`);
+console.log(`Claude Code sessions: ${plural(v.sessions, 'project folder', 'project folders')}`);

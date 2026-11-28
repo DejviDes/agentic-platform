@@ -2,6 +2,16 @@
 
 Every release has its own version (a `vX.Y.Z` tag in the repository). Update with `npm run update`, which downloads only the changes and shows you what is new. Y goes up with new features, Z with fixes.
 
+## 0.2.3 (2026-11-28)
+
+Smoother setup: the setup check finds Obsidian vaults by folder, no duplicate candidates, fixed links and port hint.
+
+- **Notes are found more reliably:** `node setup/verify.mjs` also looks for folders with a `.obsidian` subfolder in common places (home, Documents, Notes, Obsidian, iCloud, your project folders). If it finds none, the setup asks you for the path.
+- **No duplicate building candidates:** `~/Projects` and `~/projects` on a case-insensitive disk are listed once, with the name as it is on disk. Counts read "1 folder", not "1 folders".
+- **Clearer setup guide:** type "set up the platform" ("set up my city" works too); after `PORT=5050 npm start` the guide sends you to that port; `npm run check` is described as needing a running server and Chromium.
+- **Fixed links** to the changelog from the Slovak README and the contribution and security guides. The Control center floor is named in your language.
+- **Also new:** the conversation shows its team, and the strip of running employees above the field can be collapsed.
+
 ## 0.2.2 (2026-11-27)
 
 Tidier repository: server modules moved to server/, the README shows up right away.

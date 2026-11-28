@@ -15,6 +15,7 @@ import { active } from './state.js';
 import { ico, agentIcon } from './icons.js';
 import { toastOpen } from './panel.js';
 import { t as tr } from './i18n.js';
+import { floorLabel } from './control-center.js';
 
 const R = { phase: 'none', text: '', options: [], sel: 0, reason: '', local: false, request: 0, mic: 'none', rec: null, q: '', course: 0, ago: 'none' };
 let toast = () => {};
@@ -47,7 +48,7 @@ function recipients() {
   for (const b of BUILDINGS) for (const p of b.floors) {
     const P = WORLD.floors.get(p.n); if (!P?.def?.id) continue;
     // 2026-11-19: only floors (projects), always to the lead; a teammate is switched by the "to" label in the writing field before sending
-    if (t.every((x) => without(`${b.title} ${p.n}`).includes(x))) o.push({ floor: P.def.id, agent: 'lead', n: p.n, building: b.title, color: b.color });
+    if (t.every((x) => without(`${b.title} ${p.n} ${floorLabel(p.n)}`).includes(x))) o.push({ floor: P.def.id, agent: 'lead', n: p.n, building: b.title, color: b.color });
   }
   return o;
 }
@@ -65,7 +66,7 @@ function drawSelect() {
     setTimeout(() => v.focus(), 0);
   }
   const z = k.querySelector('.rtItems');
-  z.innerHTML = items.length ? items.map((m, i) => `<button class="rtR ${i === R.course ? 'on' : ''}" data-rt="pick" data-i="${i}"><span class="point" style="background:${m.color || 'var(--muted)'}"></span><span class="tx"><b>${esc(m.n)}</b><i>${esc(m.building)}</i></span></button>`).join('')
+  z.innerHTML = items.length ? items.map((m, i) => `<button class="rtR ${i === R.course ? 'on' : ''}" data-rt="pick" data-i="${i}"><span class="point" style="background:${m.color || 'var(--muted)'}"></span><span class="tx"><b>${esc(floorLabel(m.n))}</b><i>${esc(m.building)}</i></span></button>`).join('')
     : `<div class="rtEmpty">${tr('app.router.none')}</div>`;
   z.querySelector('.rtR.on')?.scrollIntoView({ block: 'nearest' });
 }

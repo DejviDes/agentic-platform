@@ -2,7 +2,7 @@
 # requires-python = ">=3.11,<3.14"
 # dependencies = ["mlx-whisper"]
 # ///
-# Mesto agentov – long-lived dictation process (phase 3). Started by extras.js via `uv run transcribe-server.py`.
+# Agentic Platform – long-lived dictation process (phase 3). Started by extras.js via `uv run transcribe-server.py`.
 # The whisper-large-v3-turbo model (mlx, local, the voice never leaves the Mac) loads once at start, then transcribes
 # recordings one by one. Protocol: on stdin a JSON line {"id": 1, "file": "/path/recording.webm"},
 # on stdout a JSON line {"id": 1, "text": "...", "ms": 812} or {"id": 1, "error": "..."}.

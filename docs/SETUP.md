@@ -2,7 +2,7 @@
 
 **English** · [Slovenčina](sk/SETUP.md)
 
-This file is for the AI assistant (Claude Code or another AI in this folder) that walks the user through setup. A person can read it too, but usually just says "set up my city".
+This file is for the AI assistant (Claude Code or another AI in this folder) that walks the user through setup. A person can read it too, but usually just says "set up the platform" (or "set up my city").
 
 ## How to lead the conversation
 
@@ -76,7 +76,7 @@ Ask: **"Do you keep notes? Where?"** and depending on the answer:
 
 | Answer | What to set |
 |---|---|
-| **Obsidian** | Offer the vaults from the check (`obsidian`). `brain: { "title": "Brain", "path": "<vault>", "kind": "obsidian" }`. Agents write markdown with `[[…]]` links. |
+| **Obsidian** | Offer the vaults from the check (`obsidian`: from Obsidian's settings and folders with a `.obsidian` subfolder in common places). If the list is empty, ask the user for the path to the vault; a vault is any folder with a `.obsidian` subfolder. `brain: { "title": "Brain", "path": "<vault>", "kind": "obsidian" }`. Agents write markdown with `[[…]]` links. |
 | **A folder of markdown files** (Logseq, iA Writer, a Bear export, VS Code…) | `brain: { "title": "Brain", "path": "<folder>", "kind": "folder" }`. |
 | **Notion, Apple Notes, OneNote or another cloud app** | The city does not read them locally. Offer two options: no Brain (leave out `brain`, notes stay in project folders), or create a simple folder `~/Notes` as a new Brain. Notion can be connected to agents through the Notion MCP, that is outside the city setup. |
 | **I don't have any** | Suggest no Brain. Agents then propose notes and decisions into the project folder (`"notes": "folder"` on each building). If the user wants, create `~/Notes`. |
@@ -127,7 +127,7 @@ Offer them one at a time, only if they make sense for the user's system.
 |---|---|---|
 | **Background service** (the server starts after login and restarts itself) | macOS | `bash launchd/install.sh` (fills in the template, does not start the service, prints the commands to turn it on) |
 | **Dictation** (microphone in the message field, transcribed locally with Whisper on the Apple chip) | macOS with Apple silicon | `uv` and `ffmpeg`; the model downloads on first use (about 1.5 GB) |
-| **App check** `npm run check` (only if the user will change the city's code) | all | `npx playwright install chromium` (about 150 MB) |
+| **App check** `npm run check` (only if the user will change the city's code) | all | `npx playwright install chromium` (about 150 MB). The check opens the app in Chromium, so it needs a **running server**: run it only after step 11 (`npm start`), on another port `npm run check -- http://localhost:5050`. |
 | **Home, Mail, Mobile** | | in preparation, leave `modules` at `false` |
 
 On Linux and Windows offer the service from "Linux and Windows" below.
@@ -191,7 +191,7 @@ Register-ScheduledTask -TaskName "AgenticPlatform" -Action $a -Trigger $t -Descr
 3. Check without a server: `node server/build-world.js` prints the buildings and floors. If a building is empty, fix its `root`.
 4. `npm install` (if it has not run yet).
 5. Start: with the service from step 10, otherwise `npm start` in the background (so you can continue the conversation), or let the user start it in their own terminal. Another port: `PORT=5050 npm start`.
-6. Tell the user to open **http://localhost:4747**.
+6. Tell the user to open **http://localhost:4747**, or the port they started with (`PORT=5050 npm start` → **http://localhost:5050**).
 
 ## 12. First steps (a short tour)
 

@@ -190,7 +190,7 @@ function captionNotes(B, name, folderPath) {
 // ---------- building the world ----------
 
 const warned = new Set();
-const warn = (text) => { if (!warned.has(text)) { warned.add(text); console.log(`⚠️  ${text}`); } };
+const warn = (text) => { if (!warned.has(text)) { warned.add(text); console.log(`Warning: ${text}`); } };
 
 function normalizeBrain(m) {
   if (!m) return null;

@@ -17,12 +17,12 @@ import { execFile } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { userLabel, loadSetting, buildWorld } from './server/build-world.js';
 import { loadModules } from './server/modules.js'; // optional modules Home, Mail, mobile (enabled in world.json)
 import { changeLanguage, changeFloor, list as listMessages } from './server/floor-admin.js';
 import { language, t } from './server/i18n.js';
-import { cleanEnv, openInApp, conversationDetail, image, attachment, saveAttachment, floorConversations, publicTeam, setAgents, sendMessage, editMessage, rules, rename, hide, toTrash, resolve as resolveConv, pin, decide, decideCard, cardType, taskCard, newSessionCard, floorState, restartState, saveAll, agentActivity, allSummaries, stop, sendImmediately, cancelFromQueue, floorCommands, cancelRule, namesState, setNames, CLAUDE_BIN, CLAUDE_VERSION } from './server/agents.js';
+import { cleanEnv, openInApp, conversationDetail, image, attachment, saveAttachment, floorConversations, publicTeam, setAgents, sendMessage, editMessage, rules, rename, hide, toTrash, resolve as resolveConv, pin, decide, decideCard, cardType, taskCard, newSessionCard, floorState, restartState, saveAll, agentActivity, pendingConversations, allSummaries, stop, sendImmediately, cancelFromQueue, floorCommands, cancelRule, namesState, setNames, CLAUDE_BIN, CLAUDE_VERSION } from './server/agents.js';
 import { LIMITS, limitFromEvent, loadLimits, transcription, prepareTranscription, stopLimits, stopTranscription } from './server/extras.js';
 import { commitControlCenter, diffControlCenter, setPushBan, pushControlCenter, watchApp, controlCenterState } from './server/control-center.js';
 import { watchStates, notifyMac } from './server/os-notifications.js';
@@ -32,6 +32,7 @@ import { calibrate, setUsage, setSaving, savingState } from './server/usage.js';
 import { usageBreakdown } from './server/usage-sessions.js';
 import { brainData, setBrain } from './server/brain-activity.js'; // agent activity in the brain and orphaned notes (Brain)
 import { proposeFloor } from './server/router.js';
+import { setEscalation, escalationState, changeEscalation, sendTest as sendEscalationTest } from './server/escalation.js'; // phone push for long waiting (2026-11-28)
 import { setScribe, scribeState, changeScribe } from './server/scribe.js'; // Scribe after a turn (2026-11-25)
 import { pendingQuestions, setChronicler, replyToQuestion, addQuestion, toggle as toggleChronicler, start as startChronicler, chroniclerState } from './server/chronicler-night.js'; // nightly Chronicler and questions in the Brain
 import { startTools, toolState } from './server/tools.js';
@@ -138,6 +139,7 @@ const emitLimits = (e) => {
 setDispatch({ data: DATA }); // Dispatch: prepared tasks in data/dispecing.json
 setAgents({ questionChronicler: addQuestion, dispatcher: { verify: (u) => verifyTasks(u, floorRouter()), context: () => dispatcherContext(floorRouter()) }, data: DATA, root: ROOT, end, worldJson: WORLD_JSON, findFloor, emit, allPaths: () => allFloor().flatMap((p) => p.paths || [p.path]), limits: (info) => limitFromEvent(info, emitLimits), limitsStatus: () => LIMITS });
 { const B = loadSetting(WORLD_JSON).brain; setBrain({ data: DATA, emit, root: B ? path.resolve(String(B.path).replace(/^~(?=\/|$)/, os.homedir())).normalize('NFC') : null, privateFolders: B?.private, omitOrphaned: B?.omitOrphaned }); } // activity record from the PostToolUse hook (agents.js)
+setEscalation({ data: DATA, waiting: pendingConversations, calendar: async (a, b) => { const f = path.join(ROOT, 'server', 'calendar.js'); return fs.existsSync(f) ? (await import(pathToFileURL(f).href)).eventsIcloud(a, b) : { events: [] }; }, /* optional: calendar.js belongs to the Home module */ push: (p) => MOD.modules.mobile?.sendPush?.(p) ?? { sent: 0, failed: 0 }, baseUrl: () => MOD.modules.mobile?.mobileBase?.() || '' }); // phone push after a long wait (escalation.js, data/escalation.json)
 setScribe({ data: DATA }); // Scribe after a turn: state and unresolved cards data/scribe.json, log data/scribe.jsonl
 setChronicler({ data: DATA, emit, sendMessage, stop, findFloor }); // nightly Chronicler 23:30 (on by default), questions data/chronicler-questions.json
 MOD.set({ data: DATA, emit, sendMessage, stop, push: MOD.modules.mobile?.sendPush }); // schedulers of enabled modules (Home: sorting, house, library, playground, task office; Mail: belt and overview), not in --selftest
@@ -277,6 +279,8 @@ const onlyClickCore = () => ({ // a function: texts are composed in the City lan
   '/api/chronicler/toggle': t('server.onlyClick.chroniclerToggle'),
   '/api/chronicler/run': t('server.onlyClick.chroniclerStart'),
   '/api/scribe': t('server.onlyClick.scribe'),
+  '/api/escalation': t('server.onlyClick.escalation'),
+  '/api/escalation/test': t('server.onlyClick.escalation'),
 });
 
 // Mobile security (2026-11-24, risk from the atlas): tool permissions and cards that change agent rules (memory = CLAUDE.md, hiring = .claude/agents/)
@@ -378,7 +382,7 @@ const handler = async (req, res) => { // also for the mobile gateway (gateway.js
         if (!K) return json(res, 404, { error: t('server.http.cardNotFound') });
         if (K.s.status !== 'proposed') return json(res, 400, { error: t('server.http.cardResolved') });
         if (d.no === true) { K.edit({ status: 'no' }); return json(res, 200, { ok: true }); }
-        if (req.fromMobile) return json(res, 403, { error: t('server.http.newSessionMac') });
+        // mobile may start it too (2026-11-28): the same as sending a message from mobile, the new session runs with the usual guards and approvals
         const assignment = String(d.assignment ?? K.s.assignment ?? '').trim(), title = String(d.title ?? K.s.title ?? '').trim();
         K.edit({ status: 'starts' }); // blocks a double click while the conversation is being created
         try {
@@ -488,6 +492,13 @@ const handler = async (req, res) => { // also for the mobile gateway (gateway.js
         if (route === '/api/chronicler/toggle') { const r = toggleChronicler(d.task, d.enabled === true); emit({ kind: 'brain', type: 'chronicler' }); return json(res, 200, r); }
         if (route === '/api/chronicler/run') { await startChronicler(d.task); return json(res, 200, chroniclerState()); }
         return json(res, 404, { error: t('server.http.unknownActionChronicler') });
+      } catch (e) { return json(res, e.code || 400, { error: e.message }); }
+    }
+    if (route === '/api/escalation' || route === '/api/escalation/test') { // phone push for long waiting (escalation.js), Settings window → Notifications
+      if (!post) return json(res, 200, escalationState());
+      try {
+        if (route === '/api/escalation/test') return json(res, 200, await sendEscalationTest());
+        return json(res, 200, changeEscalation(await body(req)));
       } catch (e) { return json(res, e.code || 400, { error: e.message }); }
     }
     if (route === '/api/scribe') { // Scribe after a turn (scribe.js), Settings window → Chat; change only by a click (onlyClick)

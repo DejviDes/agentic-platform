@@ -4,7 +4,7 @@
 
 Please **do not open a public issue** for security problems. Report them privately through GitHub: open the repository's **Security** tab and choose **Report a vulnerability**. Include what you found, how to reproduce it and what an attacker could do with it.
 
-You can expect a first reply within about a week. Fixes ship in the next release and are noted in [CHANGELOG.md](CHANGELOG.md). Only the latest release is supported.
+You can expect a first reply within about a week. Fixes ship in the next release and are noted in [CHANGELOG.md](../CHANGELOG.md). Only the latest release is supported.
 
 ## How Agentic Platform is designed to stay safe
 

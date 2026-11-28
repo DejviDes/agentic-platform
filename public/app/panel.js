@@ -12,7 +12,7 @@ import { ACTIONS, emit, route, WORLD } from './world.js';
 import { flyToBrain, enterFloor } from './navigation.js';
 import { timeShort, initConversations, convState, hasHomeChat, openAgent, openConv, send, renderConv, focusWatchdog, tabInCode, inCodeCursor, height } from './conversations.js';
 import { runningInBackground, threadNumber, floorId, agentIndex, CONV_STORE, loadConv, floorCount, send as apiSend, permission, isReal, messageConv, stop } from './api.js';
-import { drawControlCenter } from './control-center.js';
+import { drawControlCenter, floorLabel } from './control-center.js';
 import { initAlerts, notify, beep } from './alerts.js';
 import { ico, agentIcon } from './icons.js';
 import { M } from './modules.js';
@@ -60,7 +60,7 @@ const tickClock = () => { const el = $('clock'), t = simTime().toLocaleTimeStrin
 // input and router
 export function fillSelect() {
   const s = $('fromDest'); const sel = s.value;
-  s.innerHTML = `<option value="">${tt('app.panel.auto')}</option>` + BUILDINGS.map((b) => `<optgroup label="${esc(b.title)}">${b.floors.map((p) => `<option value="${esc(p.n)}">${esc(p.n)}</option>`).join('')}</optgroup>`).join('');
+  s.innerHTML = `<option value="">${tt('app.panel.auto')}</option>` + BUILDINGS.map((b) => `<optgroup label="${esc(b.title)}">${b.floors.map((p) => `<option value="${esc(p.n)}">${esc(floorLabel(p.n))}</option>`).join('')}</optgroup>`).join('');
   s.value = active?.kind === 'floor' ? active.n : sel || '';
   drawSelect();
 }
@@ -69,7 +69,7 @@ function drawSelect() {
   const s = $('fromDest'), hour = s.value, b = BUILDINGS.find((x) => x.floors.some((p) => p.n === hour));
   $('fromDestBtn').innerHTML = `${b ? `<span class="point" style="background:${b.color}"></span>` : ''}<span class="t">${hour ? esc(hour) : tt('app.panel.auto')}</span><i>▾</i>`;
   $('fromDestMenu').innerHTML = `<input id="fromDestSearch" placeholder="${tt('app.panel.searchProject')}"><div class="po auto ${hour ? '' : 'on'}" data-v=""><b>${tt('app.panel.auto')}</b><span>${tt('app.panel.autoDescription')}</span></div>` +
-    BUILDINGS.map((x) => `<div class="sk"><span class="point" style="background:${x.color}"></span>${esc(x.title)}</div>` + x.floors.map((p) => `<div class="po ${p.n === hour ? 'on' : ''}" data-v="${esc(p.n)}"><b>${esc(p.n)}</b><span>${esc(p.description || '')}</span>${p.sessions ? `<em>${tt('app.panel.sessions', { n: p.sessions })}</em>` : ''}</div>`).join('')).join('');
+    BUILDINGS.map((x) => `<div class="sk"><span class="point" style="background:${x.color}"></span>${esc(x.title)}</div>` + x.floors.map((p) => `<div class="po ${p.n === hour ? 'on' : ''}" data-v="${esc(p.n)}"><b>${esc(floorLabel(p.n))}</b><span>${esc(p.description || '')}</span>${p.sessions ? `<em>${tt('app.panel.sessions', { n: p.sessions })}</em>` : ''}</div>`).join('')).join('');
   $('fromDestMenu').querySelectorAll('.po').forEach((el) => (el.onclick = () => { s.value = el.dataset.v; closeSelect(); drawSelect(); refreshHint(); $('zText').focus(); }));
   const h = $('fromDestSearch');
   h.oninput = () => { const q = h.value.toLowerCase(); $('fromDestMenu').querySelectorAll('.po').forEach((el) => el.classList.toggle('hidden', !!q && !el.textContent.toLowerCase().includes(q))); $('fromDestMenu').querySelectorAll('.sk').forEach((sk) => { let n = sk.nextElementSibling, seen = false; while (n && n.classList.contains('po')) { if (!n.classList.contains('hidden')) seen = true; n = n.nextElementSibling; } sk.style.display = seen ? '' : 'none'; }); };
@@ -80,7 +80,7 @@ function refreshHint() {
   const text = $('zText').value.trim();
   if (!text) { $('hint').innerHTML = tt('app.panel.hint.example'); return; }
   const r = route(text, $('fromDest').value || null), a = WORLD.floors.get(r.n).agents[r.a];
-  $('hint').innerHTML = `→ <b>${esc(r.n)} · ${esc(a.name)}</b>${r.a === 0 ? tt('app.panel.hint.splits') : ''}${r.reason.length ? `${tt('app.panel.hint.byWords')}${r.reason.slice(0, 3).map((d) => `„${esc(d)}…“`).join(', ')}` : ''}`;
+  $('hint').innerHTML = `→ <b>${esc(floorLabel(r.n))} · ${esc(a.name)}</b>${r.a === 0 ? tt('app.panel.hint.splits') : ''}${r.reason.length ? `${tt('app.panel.hint.byWords')}${r.reason.slice(0, 3).map((d) => `„${esc(d)}…“`).join(', ')}` : ''}`;
 }
 
 // Brain card: real mode = the line "Written today N · read M" and the latest event from /api/brain, until data arrives the original text; demo = sample
@@ -115,7 +115,7 @@ export function refreshPanel() {
     .sort((a, b) => order[a.column] - order[b.column] || (a.column === 'done' ? (b.end ?? b.time) - (a.end ?? a.time) : b.progress - a.progress)).slice(0, 40);
   const ch = ['all', 'rad', 'doing', 'pending', 'done'].map((x) => [x, tt('app.panel.chip.' + x)]);
   $('content').innerHTML = `
-    <div class="headline"><span class="serif">${tt('app.panel.taskState')}</span><span class="mono">${inFloors ? esc(active.n) : tt('app.panel.wholeCity')}</span></div>
+    <div class="headline"><span class="serif">${tt('app.panel.taskState')}</span><span class="mono">${inFloors ? esc(floorLabel(active.n)) : tt('app.panel.wholeCity')}</span></div>
     <div class="chips">${ch.map(([k, nz]) => `<button data-f="${k}" class="${filter === k ? 'on' : ''} ${k === 'pending' ? 'pendingChip' : ''}">${nz} ${count(k)}</button>`).join('')}</div>
     ${list.length ? list.map((u) => { const a = WORLD.floors.get(u.p).agents[u.a]; const st = u.column === 'flies' ? 'doing' : u.column;
       const indeterminate = real && st === 'doing' && !u.plan; // without an agent plan we do not know the percentage (previously made up, it grew toward 92 %), UX audit wave 1
@@ -206,8 +206,8 @@ function rowConv(k, children = null, withoutFloor = false) { // children: Map pa
   const dk = String(k.floor || '').startsWith('home/') ? k.floor.slice(5) : null, db = dk && HOME_BUILDINGS.find((b) => b.k === dk);
   const n = db ? '' : floorCount(k.floor), P = n && WORLD.floors.get(n), i = P ? agentIndex(P, k.agent) : null, a = db ? { emoji: '🏠', name: db.title } : (i != null && P.agents[i]) || { emoji: '👤', name: k.agent };
   const z = pendingRequest(k), nd = children instanceof Map ? children.get(k.id) || 0 : 0;
-  const where = db ? tt('app.panel.homeWhere', { title: db.title }) : n ? shortN(n) : '';
-  const tip = `${k.title}\n${a.name}${threadNumber(k) ? ' #' + threadNumber(k) : ''}${n ? ' · ' + n : db ? ' · ' + tt('app.panel.home') : ''}${k.parent ? ' · ' + tt('app.panel.fromLead') : ''}${nd ? ' · ' + tnn('app.panel.runningTasks', nd) : ''}`;
+  const where = db ? tt('app.panel.homeWhere', { title: db.title }) : n ? shortN(floorLabel(n)) : '';
+  const tip = `${k.title}\n${a.name}${threadNumber(k) ? ' #' + threadNumber(k) : ''}${n ? ' · ' + floorLabel(n) : db ? ' · ' + tt('app.panel.home') : ''}${k.parent ? ' · ' + tt('app.panel.fromLead') : ''}${nd ? ' · ' + tnn('app.panel.runningTasks', nd) : ''}`;
   const point = k.status === 'pending' || k.status === 'reply' ? '<span class="point pending"></span>' : k.status === 'running' || nd ? '<span class="point work"></span>' : '';
   const symbol = z ? `<span class="prSch" title="${esc(z.what)} · ${esc(z.where || '')}"><span class="convSymbol pending">${ico('pending')} ${esc(String(z.what || tt('app.panel.approve')).slice(0, 28))}</span><span class="prSchB"><button class="btn ok" data-psch="${esc(z.id)}" data-r="allow">${tt('app.panel.allow')}</button><button class="btn no" data-psch="${esc(z.id)}" data-r="reject">${tt('app.panel.reject')}</button></span></span>`
     : k.status === 'pending' ? '<span class="convSymbol pending">' + ico('pending') + ' ' + tt('app.panel.approve') + '</span>' : k.status === 'reply' ? `<span class="prAns"><span class="convSymbol ans">${tt('app.panel.yourReply')}</span><button class="resolveBtn" data-resolve="${esc(k.id)}" title="${tt('app.panel.resolveTitle')}">${tt('app.panel.resolved')}</button></span>` : k.status === 'running' ? `<span class="prAns"><span class="convSymbol running">${k.start ? esc(timeShort(k.start)) : tt('app.panel.running')}</span><button class="resolveBtn" data-pstop="${esc(k.id)}" title="${tt('app.panel.stopTitle')}">${ico('stop')} ${tt('app.panel.stop')}</button></span>` : `<span class="convSymbol">${esc(timeShort(k.changed || 0))}</span>`;
@@ -393,7 +393,7 @@ export function setCrumbs() {
   // v19: breadcrumbs "City / Projects / Experiment" replace "← City" (a click on City and the building = back to the city, navigation.js), the floor description is in the title
   const dr = (t, tip) => `<button class="dr" data-d="1" title="${esc(tip)}">${esc(t)}</button>`, sep = '<span>/</span>';
   const html = active?.kind === 'interior' ? `${dr(tt('app.panel.city'), tt('app.panel.backCity'))}${sep}${dr(tt('app.panel.home'), tt('app.panel.backHome'))}${sep}<b title="${esc(active.B.description)}">${esc(active.B.title)}</b>`
-    : active?.kind === 'floor' ? `${dr(tt('app.panel.city'), tt('app.panel.backEsc'))}${sep}${dr(WORLD.floors.get(active.n).building, tt('app.panel.backCity'))}${sep}<b title="${esc(WORLD.floors.get(active.n).def.description || '')}">${esc(active.n)}</b>` : '';
+    : active?.kind === 'floor' ? `${dr(tt('app.panel.city'), tt('app.panel.backEsc'))}${sep}${dr(floorLabel(WORLD.floors.get(active.n).building), tt('app.panel.backCity'))}${sep}<b title="${esc(WORLD.floors.get(active.n).def.description || '')}">${esc(floorLabel(active.n))}</b>` : '';
   const d = $('crumbs'); if (d.dataset.h !== html) { d.dataset.h = html; d.innerHTML = html; }
   const pending = WORLD.tasks.filter((u) => u.column === 'pending').length;
   document.title = pending ? `(${pending}) ${tt('app.panel.titleApp')}` : tt('app.panel.titleApp');

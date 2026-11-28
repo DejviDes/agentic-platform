@@ -413,7 +413,7 @@ function message(v, s, P) {
     case 'delegate': { const a = agentFor(P, s.who), sub = s.thread ? CONV_STORE.conv.get(s.thread) : null, st = ['self', 'no', 'cancelled'].includes(s.status) ? s.status : sub?.status || s.status;
       if (['self', 'no', 'cancelled'].includes(st)) return `<div class="chip">${st === 'self' ? ico('refresh') : ico('x')} ${esc(a.name)} · ${esc(s.title)} · ${st === 'self' ? T('app.conv.doingSelf') : st === 'no' ? T('app.conv.rejected') : T('app.conv.cancelled')}</div>`;
       return `<div class="convDel" data-v="${esc(s.thread || '')}">${agentIcon(a)}<div class="tx"><b>↳ ${sub ? nameC(sub, a) : s.number ? `${esc(a.name)} #${s.number}` : esc(a.name)}</b><span>${esc(s.title)}</span></div><span class="convSymbol ${st === 'pending' ? 'pending' : st === 'running' ? 'running' : st === 'error' ? 'error' : ''}">${st === 'pending' ? ico('pending') + ' ' + T('app.conv.symbolApprove') : st === 'running' ? T('app.conv.stopWorking') : st === 'error' ? T('app.conv.symbolError') : st === 'done' ? '✓ ' + T('app.conv.doneMale') : T('app.conv.handedOver')}${s.p ? ` · ≈ ${fmtP(s.p)} %` : ''}</span><i>›</i></div>`; }
-    case 'usage': return ''; // v19: the numbers are in the tooltip of the context ring in the header (the thread's last usage, spotrebaTip)
+    case 'usage': return ''; // v19: the numbers are in the tooltip of the context ring in the header (the thread's last usage)
     case 'cap': {
       if (s.status !== 'proposed') return `<div class="chip">${s.status === 'yes' ? ico('play') + ' ' + T('app.conv.continues') : ico('stop') + ' ' + T('app.conv.stopped')} · ${T('app.conv.capSpent', { cap: fmtP(s.cap), p: fmtP(s.p) })}</div>`;
       return `<div class="card"><div style="font-weight:700">${ico('pause')} ${T('app.conv.capExceeded', { cap: fmtP(s.cap) })}</div><div class="mono">${T('app.conv.yet', { p: fmtP(s.p) })}${s.team >= 0.05 ? ` · ${T('app.conv.leadTeam', { lead: fmtP(s.lead), team: fmtP(s.team) })}` : ''}</div>
@@ -687,6 +687,18 @@ function queueTopbar(v) {
   if (el.dataset.h !== h) { el.innerHTML = h; el.dataset.h = h; }
 }
 
+// Running teammates (2026-11-28): in an open lead conversation the employees it delegated to and who still run are pinned above
+// the input field (name, task, live time), so you do not have to scroll back to the delegation card. A click opens the thread.
+function teamTopbar(P, v) {
+  const el = $('convTeam');
+  const f = v && !v.parent ? [...CONV_STORE.conv.values()].filter((x) => x.parent === v.id && RUNNING.includes(x.status)).sort((x, y) => (x.created || 0) - (y.created || 0)) : [];
+  // collapsible: with more than 3 collapsed by default, a click on the header switches it and the choice is remembered (CONV.teamOpen)
+  const open = CONV.teamOpen ?? f.length <= 3;
+  const h = !f.length ? '' : `<button class="convTeamH" data-teamtog="1" title="${T(open ? 'app.conv.teamCollapse' : 'app.conv.teamExpand')}">${ico('wheel')} ${TN('app.conv.teamRunning', f.length)}${open ? '' : `<span class="convTeamAv">${f.slice(0, 8).map((x) => agentIcon(agentFor(P, x.agent), 'xs')).join('')}${f.length > 8 ? `<em>+${f.length - 8}</em>` : ''}</span>`}<span class="convTeamArr">${open ? '▾' : '▸'}</span></button>` + (!open ? '' : f.map((x) => { const a = agentFor(P, x.agent); return `<div class="convBgR" data-v="${esc(x.id)}" title="${T('app.conv.openThread')}">${agentIcon(a, 'mal')}<b>${nameC(x, a)}</b><span class="tt">${esc(x.title)}</span><span class="convBgTime" data-from="${x.created || 0}">${x.created ? duration(Date.now() - x.created) : ''}</span></div>`; }).join(''));
+  el.classList.toggle('on', f.length > 0);
+  if (el.dataset.h !== h) { el.innerHTML = h; el.dataset.h = h; }
+}
+
 // ---------- slash commands: menu after "/" (2026-11-11) ----------
 // A list from the server (GET /api/commands, supportedCommands in the floor folder, cache), on top the City's commands that
 // open existing pickers (they do not go to the agent). ↑↓ select, Tab completes, Enter completes and sends a command without an argument immediately, Esc closes.
@@ -939,7 +951,7 @@ export function renderConv(force = false) {
   if ($('convRecipient').innerHTML !== kk) $('convRecipient').innerHTML = kk;
   if ($('agText').placeholder !== ph) $('agText').placeholder = ph;
   delegTopbar(P, v);
-  queueTopbar(v); alertTopbar();
+  queueTopbar(v); alertTopbar(); teamTopbar(P, v);
   selectTopbar(P, v);
   drawChoice(pid, v); drawRecipient(P, v);
   const signature = `${CONV_STORE.ver}|${CONV.open}|${CONV.tab}|${n}`;
@@ -1364,6 +1376,11 @@ export function initConversations(toast) {
     if (t.dataset.alert === 'close') { CONV.alert = null; return alertTopbar(); }
     CONV.alertMode = t.dataset.alert; send();
   });
+  $('convTeam').addEventListener('click', (e) => {
+    const P = chatP(); if (!P) return;
+    if (e.target.closest('[data-teamtog]')) { const n = $('convTeam').querySelectorAll('.convBgR').length; CONV.teamOpen = !n; return teamTopbar(P, CONV.open ? find(P.def.id, CONV.open) : null); }
+    const t = e.target.closest('[data-v]'); if (t) openConv(t.dataset.v);
+  });
   $('convDelegTopbar').addEventListener('click', (e) => {
     const t = e.target.closest('[data-back],[data-direct]'); if (!t || !chatP()) return;
     e.preventDefault();
@@ -1385,7 +1402,7 @@ export function initConversations(toast) {
     if (CONV.mic === 'uploading') micStatus();
     const el = document.getElementById('convStopwatch');
     if (el && CONV.open && chatP()) { const v = CONV_STORE.conv.get(CONV.open); if (v && RUNNING.includes(v.status)) el.innerHTML = stopwatch(v); }
-    if (CONV.open == null && chatP()) for (const c of document.querySelectorAll('.convBgTime[data-from]')) { const from = +c.dataset.from; if (from) c.textContent = duration(Date.now() - from); } // live time of background tasks
+    if (chatP()) for (const c of document.querySelectorAll(CONV.open == null ? '.convBgTime[data-from]' : '#convTeam .convBgTime[data-from]')) { const from = +c.dataset.from; if (from) c.textContent = duration(Date.now() - from); } // live time of background tasks
   }, 1000);
   setInterval(drawLimits, 60000); // "resets at …"
 }

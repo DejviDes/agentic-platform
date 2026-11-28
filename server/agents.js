@@ -21,6 +21,7 @@ import { units, toPercent, toUnits, tally, learnFromResult, settings as settings
 import { usageInWindow } from './usage-sessions.js';
 import { record as recordBrain } from './brain-activity.js';
 import { t as tl } from './i18n.js';
+import * as wakeups from './wakeups.js'; // wake_when tool: waits for a detached job and wakes the agent
 import { commitFromStep, scribeCard, processTurn, resolveCard as resolveScribeCard } from './scribe.js'; // Scribe after a turn (2026-11-25)
 import fs from 'node:fs';
 import path from 'node:path';
@@ -101,7 +102,7 @@ export function cleanEnv() {
 // restart_server shows its own card (in every mode), so it is here and does not go through canUseTool.
 // SubagentHandback (an employee's final report) and ToolSearch (loading a schema) must go without a card: a background employee
 // and a turn started by a notification have nowhere to show an approval, the CLI then denies them ("The user doesn't want…") and the message is lost.
-const WITHOUT_ASKING = ['Read', 'Glob', 'Grep', 'Agent', 'Task', 'TodoWrite', 'Skill', 'SubagentHandback', 'ToolSearch','mcp__agentic__propose_team', 'mcp__agentic__propose_memory', 'mcp__agentic__view_conversation', 'mcp__agentic__restart_server', 'mcp__agentic__propose_title', 'mcp__agentic__propose_tasks', 'mcp__agentic__run_in_claude_app', 'mcp__agentic__run_in_new_session', 'mcp__agentic__personal_mail', 'mcp__agentic__plan', 'mcp__agentic__show_file', 'mcp__agentic__confirm_question', 'TaskCreate', 'TaskUpdate', 'TaskList', 'TaskGet'];
+const WITHOUT_ASKING = ['Read', 'Glob', 'Grep', 'Agent', 'Task', 'TodoWrite', 'Skill', 'SubagentHandback', 'ToolSearch','mcp__agentic__propose_team', 'mcp__agentic__propose_memory', 'mcp__agentic__view_conversation', 'mcp__agentic__restart_server', 'mcp__agentic__propose_title', 'mcp__agentic__propose_tasks', 'mcp__agentic__run_in_claude_app', 'mcp__agentic__run_in_new_session', 'mcp__agentic__personal_mail', 'mcp__agentic__plan', 'mcp__agentic__show_file', 'mcp__agentic__confirm_question', 'mcp__agentic__wake_when', 'TaskCreate', 'TaskUpdate', 'TaskList', 'TaskGet'];
 const WRITE = ['Write', 'Edit', 'MultiEdit', 'NotebookEdit'];
 
 // Banned push: `guards.bannedPush` in world.json is a list of git remote hosts (e.g. "gitlab.example.com"), empty by default.
@@ -465,6 +466,7 @@ export function setAgents(o) {
   tidyAttachments(); setInterval(tidyAttachments, 24 * 3600e3).unref();
   try { always = JSON.parse(fs.readFileSync(PERMISSIONS, 'utf8')); } catch { always = {}; }
   HIDDEN_FILE = path.join(DATA, 'hidden.json'); try { HIDDEN = new Set(JSON.parse(fs.readFileSync(HIDDEN_FILE, 'utf8'))); } catch { HIDDEN = new Set(); }
+  wakeups.init({ data: DATA, exists: (cid) => CONV.has(cid), wake: wakeUp });
   setTimeout(afterRestart, 4000).unref(); // the conversation that requested the restart gets a message (data/restart.json)
   if (fs.existsSync(CONV_FILE)) {
     for (const k of JSON.parse(fs.readFileSync(CONV_FILE, 'utf8')).conversations || []) {
@@ -1579,6 +1581,20 @@ function toolsCity(run) {
       add(k, { type: 'newSession', id: 'n' + Date.now().toString(36) + (++counter), title: tail(nazov, 60), assignment: text, reason: tail(reason, 240), status: 'proposed' });
       return { content: [{ type: 'text', text: tl('prompt.tool.create.card') }] };
     });
+  // wake_when (2026-11-28): wait (server-side, no Claude) for a file / process of a detached job, then a new turn in this conversation. Does not wait for the user.
+  const wakeWhen = tool('wake_when',
+    tl('prompt.tool.wake'),
+    { file: z.string().optional().describe(tl('prompt.tool.wake.file')),
+      process: z.string().optional().describe(tl('prompt.tool.wake.process')),
+      message: z.string().describe(tl('prompt.tool.wake.message')),
+      timeout_minutes: z.number().optional().describe(tl('prompt.tool.wake.timeout')) },
+    async ({ file, process: proc, message, timeout_minutes }) => {
+      const r = wakeups.register({ conv: k.id, floor: P.id, agent: k.agent, file, process: proc, message, timeoutMinutes: timeout_minutes });
+      if (r.error) return { content: [{ type: 'text', text: tl(r.error === 'noCondition' ? 'prompt.tool.wake.noCondition' : 'prompt.tool.wake.shortProcess') }], isError: true };
+      const what = [r.wait.file && tilde(r.wait.file), r.wait.process && `pgrep -f "${r.wait.process}"`].filter(Boolean).join(' + ');
+      add(k, { type: 'info', text: tl('server.wake.waiting', { what, min: r.minutes }) });
+      return { content: [{ type: 'text', text: tl('prompt.tool.wake.registered', { min: r.minutes }) }] };
+    });
   // Dispatcher (2026-11-15): proposes several tasks at once. Does not wait for the user (the card is in the chat, controlled via dispatch.js), floors and agents are verified
   // by dispatcher.verify (dispatch.js), invalid tasks are returned to the model to fix them.
   const proposeTasks = tool('propose_tasks',
@@ -1624,7 +1640,7 @@ function toolsCity(run) {
       return r.error ? { content: [{ type: 'text', text: tl('prompt.tool.question.notSaved', { error: r.error }) }], isError: true }
         : { content: [{ type: 'text', text: tl('prompt.tool.question.saved', { id: r.id }) }] };
     });
-  const tools = P.virtual ? [viewConv, plan, showFile, startInNewSession, ...(P.proposalTitle ? [proposeTitle] : []), ...(P.dispatch ? [proposeTasks] : []), ...(P.personalMail ? [personalMail] : []), ...(P.chronicler ? [question] : [])] : k.agent === 'lead' ? [proposeTeam, proposeMemory, viewConv, proposeTitle, plan, startInApp, startInNewSession, showFile] : [proposeMemory, proposeTitle, plan, startInApp, showFile]; // virtual floor: no hiring and no project memory
+  const tools = P.virtual ? [viewConv, plan, showFile, startInNewSession, wakeWhen, ...(P.proposalTitle ? [proposeTitle] : []), ...(P.dispatch ? [proposeTasks] : []), ...(P.personalMail ? [personalMail] : []), ...(P.chronicler ? [question] : [])] : k.agent === 'lead' ? [proposeTeam, proposeMemory, viewConv, proposeTitle, plan, startInApp, startInNewSession, showFile, wakeWhen] : [proposeMemory, proposeTitle, plan, startInApp, showFile, wakeWhen]; // virtual floor: no hiring and no project memory
   if (P.id === 'control-center') tools.push(restart);
   return createSdkMcpServer({ name: 'agentic', version: '1.0.0', alwaysLoad: true, timeout: 24 * 3600 * 1000, tools: tools });
 }
@@ -1711,6 +1727,15 @@ async function waitARestart(run) {
 }
 
 // after start: message to the conversation that requested the restart (via resume of the same session). The record is deleted at once so it does not repeat.
+// wake_when: a new turn in the waiting conversation (when 'next': if it runs right now, the message is queued)
+async function wakeUp(w, reason) {
+  const k = CONV.get(w.conv); if (!k) return;
+  const what = [w.file && tilde(w.file), w.process && `pgrep -f "${w.process}"`].filter(Boolean).join(' + ');
+  add(k, { type: 'info', text: tl(reason === 'timeout' ? 'server.wake.timeout' : 'server.wake.done', { what }) });
+  const text = tl(reason === 'timeout' ? 'prompt.wake.timeout' : 'prompt.wake.done', { what, message: w.message });
+  await sendMessage({ id: k.id, text, when: 'next' });
+}
+
 async function afterRestart() {
   let z; try { z = JSON.parse(fs.readFileSync(restartFile(), 'utf8')); } catch { return; }
   try { fs.unlinkSync(restartFile()); } catch {}
@@ -2393,6 +2418,7 @@ function markDelegation(run, d) {
 export async function stop(id) {
   let k = CONV.get(id); while (k?.parent) k = CONV.get(k.parent);
   const run = k && LIVE.get(k.id)?.run; if (!run) return false;
+  wakeups.cancelFor(k.id); // the user stopped the conversation: pending wake_when waits are dropped
   run.stopped = true; run.interrupted = true;
   // messages sent from the queue would be run by the CLI after the interrupt (interrupt does not cancel them): we mark them and interrupt their turn at once (lifeMessages)
   for (const f of run.queue.filter((x) => !x.afterRun)) {
@@ -2427,5 +2453,16 @@ export function agentActivity() {
     if (z.status === 'running') bezia++; else if (z.status === 'pending') pending.push(z.pendingFrom || z.start || now());
   }
   return { running: bezia, pending };
+}
+// conversations waiting for the user (escalation.js): { id, floor, agent, title, from, kind: 'question' | 'approval' }; same rules as agentActivity
+export function pendingConversations() {
+  const out = [];
+  for (const [id, z] of LIVE) {
+    if (z.status !== 'pending' || z.run?.appPending) continue;
+    const k = CONV.get(id); if (!k) continue;
+    const question = [...CARDS.values()].some((c) => c.conv === id && c.type === 'questions');
+    out.push({ id, floor: k.floor, agent: k.agent, title: k.title || '', from: z.pendingFrom || z.start || now(), kind: question ? 'question' : 'approval' });
+  }
+  return out;
 }
 export function firstRun() { for (const z of LIVE.values()) if (z.run?.q) return z.run.q; return null; }

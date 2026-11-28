@@ -12,7 +12,7 @@ A local app: the user's projects as a 3D city. A building = a group of projects,
 - ES modules without a build step, Three.js 0.160 through the importmap in `public/index.html`. Modules import each other in a cycle, so only declarations at module top level.
 - Performance is a priority. For a new 3D element say what it costs and measure it: `?perf` in the address, then `__perf.test(60, true)` in the console.
 - Custom controls, never a native `select` or `confirm`. Icons are line SVGs (`public/app/icons.js`), not emoji.
-- After a change in `public/app/` or on the server run `npm run check` (`tests/check.mjs`; needs a running server and Chromium from `npx playwright install chromium`). `node server.js --selftest` loads all modules and builds the world without starting the server.
+- After a change in `public/app/` or on the server run `npm run check` (`tests/check.mjs`). It opens the app in Chromium, so start the server first (`npm start`, another port: `npm run check -- http://localhost:5050`) and install Chromium once with `npx playwright install chromium`. `node server.js --selftest` loads all modules and builds the world without starting the server.
 - UI texts go through `t('key')` with both languages: `public/app/i18n/en-*.js` and `sk-*.js` for the app, `server/i18n/en.js` and `sk.js` for the server.
 - The server listens only on `127.0.0.1` and runs on the subscription (`claude auth login`), never with an API key.
 - `data/` and `world.json` do not belong in git.
