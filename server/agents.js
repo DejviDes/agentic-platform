@@ -153,7 +153,9 @@ const DATA_DIR_RE = /^data(?:-(?:backup|zaloha)[^/]*|\.migrating[^/]*)?(?:\/|$)/
 // the English routes (current code) and the original Slovak ones (older floors, agents and notes still know them).
 const CLICK_API = /\/api\/(?:control-center\/(?:commit|push)|permission|card|claude-app|new-session|rules|sorting\/(?:proposal|exceptions|approve|is)|inbox|house\/(?:diary|toggle|run)|mail\/(?:answer|toggle|run|pass\/(?:action|resolve|collect|explain))|library\/(?:rating|toggle|run)|garden\/uncheck|playground\/(?:write|toggle|run)|tasks\/(?:change|new|names|restore|toggle|run)|dispatch\/(?:run|prepare|cancel|card)|brain\/answer|chronicler\/(?:toggle|run)|scribe)\b/;
 const CLICK_API_LEGACY = /\/api\/(?:centrala\/(?:commit|push)|povolenie|karta|claude-appka|nova-session|pravidla|triedenie\/(?:navrh|vynimky|schval|is)|inbox|dom\/(?:dennik|prepni|spusti)|posta\/(?:odpoved|prepni|spusti|pas\/(?:akcia|vybav|zber|vysvetli))|kniznica\/(?:hodnotenie|prepni|spusti)|zahrada\/odskrtni|ihrisko\/(?:zapis|prepni|spusti)|ulohy\/(?:zmen|nova|nazvy|obnov|prepni|spusti)|dispecing\/(?:spusti|priprav|zrus|karta)|mozog\/odpoved|kronikar\/(?:prepni|spusti)|zapisovac)\b/;
-const inCity = (a) => a === CITY || a.startsWith(CITY + '/');
+// Windows paths use \, the guards compare with / (identity on macOS and Linux)
+const fwd = (p) => (path.sep === '\\' ? String(p).replace(/\\/g, '/') : String(p));
+const inCity = (a) => a === fwd(CITY) || a.startsWith(fwd(CITY) + '/');
 const BAN_DATA = () => tl('prompt.ban.data');
 const BAN_NODE = () => tl('prompt.ban.node');
 const BAN_PROTOTYPE = () => tl('prompt.ban.prototype');
@@ -161,11 +163,11 @@ const BAN_SERVER = () => tl('prompt.ban.server');
 const BAN_CLICK = () => tl('prompt.ban.click');
 // protected path (absolute) → ban reason or null. maz = the command deletes or moves (also catches deleting a whole folder above data/)
 function protectedPath(abs, deleting = false) {
-  abs = String(abs).normalize('NFC').replace(/(.)\/+$/, '$1');
+  abs = fwd(abs).normalize('NFC').replace(/(.)\/+$/, '$1');
   if (PLIST_RE.test(abs)) return BAN_SERVER();
-  if (deleting && (abs === CITY || CITY.startsWith(abs === '/' ? '/' : abs + '/'))) return BAN_DATA();
+  if (deleting && (abs === fwd(CITY) || fwd(CITY).startsWith(abs === '/' ? '/' : abs + '/'))) return BAN_DATA();
   if (!inCity(abs)) return null;
-  const rel = path.relative(CITY, abs);
+  const rel = fwd(path.relative(CITY, abs));
   if (DATA_DIR_RE.test(rel)) return BAN_DATA();
   if (rel === 'node_modules' || rel.startsWith('node_modules/')) return BAN_NODE();
   if (/^public\/dizajn-v[^/]*\.html$/.test(rel) && fs.existsSync(abs)) return BAN_PROTOTYPE();
@@ -226,7 +228,7 @@ export function guardCity(nastroj, enter, cwd) {
 // (devices.json, lock.json, test-key). The rest of data/ (conversations…) agents may read. The Azure key is in the Keychain, not in a file.
 // Residual risk: Bash with obfuscation (base64, python -c open(…)) cannot be caught by a regex, the next layer would be moving the secrets to the Keychain.
 const BAN_SECRET = () => tl('prompt.ban.secret');
-const low = (p) => String(p).normalize('NFC').toLowerCase().replace(/(.)\/+$/, '$1');
+const low = (p) => fwd(p).normalize('NFC').toLowerCase().replace(/(.)\/+$/, '$1');
 const real = (p) => { // realpath also for a non-existent path (nearest existing parent), so a symlink does not skip the ban
   let a = p; const zv = [];
   while (a && !fs.existsSync(a) && path.dirname(a) !== a) { zv.unshift(path.basename(a)); a = path.dirname(a); }

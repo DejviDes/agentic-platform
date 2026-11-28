@@ -1,5 +1,7 @@
 # Agentic Platform
 
+[![CI](https://github.com/DejviDes/agentic-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/DejviDes/agentic-platform/actions/workflows/ci.yml)
+
 [English](../README.md) · **Slovenčina**
 
 **Lokálna riadiaca centrála pre tímy Claude Code agentov.** Tvoje projekty uvidíš ako 3D mesto, v ktorom agenti pracujú. Budova je skupina projektov, poschodie je jeden projekt (priečinok na disku) a na každom poschodí sedí vedúci so svojím tímom. Píšeš im, schvaľuješ ich kroky kliknutím a z mesta vidíš, kde sa práve pracuje a kde agent čaká na teba.
@@ -50,7 +52,7 @@ Toto vydanie obsahuje variant **Základ**. Čo zapnúť, si vyberieš pri nastav
 - **Node.js 22+**
 - **Claude Code** prihlásený tvojím predplatným Claude (Pro alebo Max): `claude auth login`. Mesto nepoužíva API kľúč.
 - git (odporúčané; Riadiaca centrála a aktualizácie ho potrebujú)
-- Systém: **macOS je otestovaný.** Linux a Windows (odporúčané WSL 2) nastaví AI sprievodca; veci iba pre Mac (zámok Touch ID, notifikácie systému, spánok Macu, služba launchd, diktovanie) sa tam vypnú.
+- Systém: **macOS je otestovaný denným používaním.** Každá zmena navyše prejde automatickými kontrolami na Linuxe, Windowse a macOS (inštalácia, skúška servera, unit testy; odznak CI hore). Linux a Windows (odporúčané WSL 2) nastaví AI sprievodca; veci iba pre Mac (zámok Touch ID, notifikácie systému, spánok Macu, služba launchd, diktovanie) sa tam vypnú.
 
 ## Inštalácia: povedz to svojej AI
 

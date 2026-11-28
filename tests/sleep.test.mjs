@@ -11,6 +11,9 @@ const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'spanok-'));
 m.setSleep({ data: dir, execute, activity: () => update, alert: (a) => alert.push(a), clock: () => t });
 const pm = () => log.filter((l) => /disablesleep|sleepnow/.test(l) && !/-l /.test(l)); const reset = () => { log.length = 0; };
 const adv = (s) => { t += s * 1e3; };
+// outside macOS sleep is disabled: no pmset call, the change is refused (CI on Linux and Windows)
+const { IS_MAC } = await import(new URL('../server/platform.js', import.meta.url));
+if (!IS_MAC) { m.recompute(); assert.deepEqual(log, []); assert.throws(() => m.changeSleep({ mode: 'agents' }), { code: 400 }); assert.equal(m.sleepState().available, false); console.log('sleep: OK (not macOS, disabled)'); process.exit(0); }
 // common: nothing
 update = { running: 2, pending: [] }; m.recompute(); assert.deepEqual(pm(), []);
 // agents: holds

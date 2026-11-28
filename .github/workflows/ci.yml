@@ -1,0 +1,54 @@
+# Automatic checks on Linux, Windows and macOS: install, syntax, server self-test, environment check and unit tests.
+# Runs without Claude Code, without a login and without a browser (the server self-test and the unit tests do not need them).
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    env:
+      AGENTIC_LANG: en
+    steps:
+      - uses: actions/checkout@v5
+
+      # the lowest version allowed by "engines" in package.json (>=22), the one a new user is most likely to have
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
+
+      - name: Syntax (node --check of every .js and .mjs)
+        run: node .github/ci/checks.mjs syntax
+
+      # like a new user: no world.json, no data/, no Claude Code CLI
+      - name: Server self-test
+        run: node server.js --selftest
+
+      - name: Environment check
+        run: node setup/verify.mjs --json
+
+      - name: Unit tests
+        run: node .github/ci/checks.mjs tests

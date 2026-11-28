@@ -1,5 +1,7 @@
 # Agentic Platform
 
+[![CI](https://github.com/DejviDes/agentic-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/DejviDes/agentic-platform/actions/workflows/ci.yml)
+
 **English** · [Slovenčina](docs/README.sk.md)
 
 **A local control center for teams of Claude Code agents.** You see your projects as a 3D city where agents work. A building is a group of projects, a floor is one project (a folder on your disk), and on every floor there is a lead agent with a team. You write to them, approve their steps with a click, and from the city you see where work is going on and where an agent is waiting for you.
@@ -50,7 +52,7 @@ This release contains the **Core** edition. You pick what to turn on during setu
 - **Node.js 22+**
 - **Claude Code** signed in with your Claude subscription (Pro or Max): `claude auth login`. The app never uses an API key.
 - git (recommended; the Control center and updates need it)
-- Operating system: **macOS is tested.** Linux and Windows (WSL 2 recommended) are set up by the AI setup guide; Mac-only features (Touch ID lock, system notifications, Mac sleep, the launchd service, dictation) are switched off there.
+- Operating system: **macOS is tested in daily use.** Every change also passes automatic checks on Linux, Windows and macOS (install, server self-test, unit tests; the CI badge above). Linux and Windows (WSL 2 recommended) are set up by the AI setup guide; Mac-only features (Touch ID lock, system notifications, Mac sleep, the launchd service, dictation) are switched off there.
 
 ## Install: ask your AI
 

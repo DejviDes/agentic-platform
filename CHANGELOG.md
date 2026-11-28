@@ -2,6 +2,11 @@
 
 Every release has its own version (a `vX.Y.Z` tag in the repository). Update with `npm run update`, which downloads only the changes and shows you what is new. Y goes up with new features, Z with fixes.
 
+## 0.2.4 (2026-11-28)
+
+- Automatic checks on Linux, Windows and macOS for every release, with a status badge in the README.
+- The unit tests also run outside macOS (Mac sleep is checked as switched off there).
+
 ## 0.2.3 (2026-11-28)
 
 Smoother setup: the setup check finds Obsidian vaults by folder, no duplicate candidates, fixed links and port hint.

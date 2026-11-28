@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict';
 import os from 'node:os';
 import path from 'node:path';
+import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { ruleKey, guardBash, guardReading, guardWrite } from '../server/agents.js';
 
@@ -75,7 +76,7 @@ for (const c of ['cat data/zariadenia.json', 'cat data/kluc-skusky', 'head data/
 // ---------- writes into the City folder: data/ (and its migration copies), node_modules/, old prototypes ----------
 const write = (f, cwd = CITY) => guardWrite(f, cwd);
 for (const f of ['data/conversations.json', 'data/konverzacie.json', 'data/messages/x.json', 'data/spravy/x.json', 'data', 'data-backup-2026-11-27/conversations.json', 'data-zaloha-2026-11-26/x', 'data.migrating/x', 'node_modules/x/index.js', 'public/dizajn-v1.html'])
-  assert.ok(write(f), `write should be banned: ${f}`);
+  if (!f.startsWith('public/dizajn-') || existsSync(path.join(CITY, f))) assert.ok(write(f), `write should be banned: ${f}`); // prototypes are only in the private repository, the guard bans existing ones
 for (const f of ['agents.js', 'migrate.js', 'public/dizajn-v999-rozpracovane.html', 'database.js', 'tests/x.mjs']) assert.equal(write(f), null, `write should pass: ${f}`);
 for (const c of ['echo x > data/conversations.json', 'cp a data/povolenia.json', 'mv data data2', 'rm -rf data-backup-2026-11-27', 'sed -i "" s/a/b/ data/permissions.json', 'touch node_modules/x'])
   assert.ok(bash(c), `Bash should deny the write: ${c}`);
